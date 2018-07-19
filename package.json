@@ -1,0 +1,23 @@
+{
+  "name": "rest-bridge",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "connect": "^3.2.0",
+    "ws": "^5.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test/basic.js"
+  },
+  "keywords": [
+    "rest",
+    "bridge",
+    "cloud",
+    "connector"
+  ],
+  "author": "nanw1103",
+  "license": "ISC"
+}
