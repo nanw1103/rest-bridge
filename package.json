@@ -14,7 +14,7 @@
     "url": "git+https://github.com/nanw1103/rest-bridge.git"
   },
   "author": "nanw1103",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/nanw1103/rest-bridge/issues"
   },
