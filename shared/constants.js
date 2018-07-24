@@ -9,5 +9,7 @@ module.exports = {
 		SEQ_RESP: HEADER_PREFIX + 'seq-resp',
 		CHUNKS: HEADER_PREFIX + 'chunks',
 		KEY: HEADER_PREFIX + 'key',
+		FORWARDED: HEADER_PREFIX + 'forwarded',
+		NO_CONNECTOR: HEADER_PREFIX + 'no-connector'
 	}
 }

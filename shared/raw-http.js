@@ -1,3 +1,48 @@
+const url = require('url')
+const http = require('http')
+const https = require('https')
+
+function doHttpCall(baseUrl, req, callback) {
+	
+	let target = url.parse(baseUrl)
+
+	var options = {
+		hostname: target.hostname,
+		port: target.port,
+		path: req.path,
+		method: req.method,
+		headers: req.headers,
+		setHost: false,
+		timeout: 60000
+	}
+
+	let httpLib = target.protocol === 'http:' ? http : https
+
+	let request = httpLib.request(options, function(res) {
+
+		let respObj = {
+			httpVersion: res.httpVersion,
+			statusCode: res.statusCode,
+			statusMessage: res.statusMessage,
+			headers: res.headers,
+			chunks: []
+		}
+
+		res.on('data', function (chunk) {
+			respObj.chunks.push(chunk)
+		}).on('end', function() {
+			callback(null, respObj)
+		})
+	}).on('error', e => {
+		callback(e)
+	}).on('timeout', () => {
+		callback('timeout')
+	})
+
+	if (req.body)
+		request.write(req.body)
+	request.end()
+}
 
 function response(code, text, headers, body) {
 	let msg = `HTTP/1.1 ${code}`
@@ -197,5 +242,7 @@ module.exports = {
 	reqToText: reqToText,
 	resToText: resToText,
 
-	resToHead: resToHead
+	resToHead: resToHead,
+	
+	doHttpCall: doHttpCall
 }

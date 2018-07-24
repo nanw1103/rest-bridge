@@ -2,6 +2,7 @@
 const util = require('util')
 const fs = require('fs')
 const path = require('path')
+const thisNode = require('./node.js')
 
 let logFile = process.env['launchpad_log']
 let usingFile = logFile && logFile.length > 0
@@ -79,14 +80,14 @@ function error() {
 	logErr.write(text)
 }
 
-console.log = log
-console.error = error
+//console.log = log
+//console.error = error
 
 function formatLogContent(args, prefix) {
 	maskPassword(args)
 	let logContent = util.format.apply(null, args)
 	let timeString = new Date().toLocaleString()
-	logContent = timeString + prefix + logContent
+	logContent = timeString + prefix + thisNode.short() + ' - ' + logContent
 	return logContent + '\n'
 }
 

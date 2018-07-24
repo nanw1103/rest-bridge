@@ -1,64 +1,154 @@
-//const {log, error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')(__filename)
 const constants = require('../shared/constants.js')
+const thisNode = require('../shared/node.js')
 const rawHttp = require('../shared/raw-http.js')
 
+const registry = require('./registry.js')
 const connectorSvc = require('./connector-svc.js')
 
 let seq_counter = 0
 
 const stat = {
 	incoming: 0,
-	missingConnector: 0,
+	missingConnectorKey: 0,
+	missingConnector: 0,	
 	connectorFailure: 0,
+	noFurtherRedirection: 0,
+	forwarded: 0,
 }
 
-function init(app) {
+function forwardToConnectorByPathKey(req, res) {
+	//log('forwardToConnectorByPathKey', req.method, req.url)
+	stat.incoming++
+
+	let url = req.url
+	let end = url.indexOf('/', 1)
+	if (end < 0) {
+		res.writeHead(503, 'Missing target path in url')
+		res.end()
+		return
+	}
+	let k = url.substring(1, end)
+	req.url = url.substring(end)
+
+	//log('forwardToConnectorByPathKey result', req.url)
+
+	return forwardImpl(k, req, res)
+}
+
+function forwardToConnectorByHeaderKey(req, res) {
+
+	//log('forwardToConnectorByHeaderKey', req.method, req.url)
+	stat.incoming++
+	
+	let headers = req.headers
+	let k = headers[constants.headers.KEY]
+	//k = 'demoKey'
+
+	if (!k) {
+		stat.missingConnectorKey++
+		res.writeHead(503, 'Missing ' + constants.headers.KEY)
+		res.end()		
+		return
+	}
+
+	return forwardImpl(k, req, res)
+}
+
+function forwardImpl(k, req, res) {
+	
+	let headers = req.headers
+
+	let connector = connectorSvc.findConnector(k)
+	if (connector) {
+		//redirect to connector	connected to this node			
+		let seq = ++seq_counter
+		headers[constants.headers.SEQ] = seq
+			
+		let text = rawHttp.reqToText(req)
+		connector.send(text, seq, onResponseForwardToClient)
+		return
+	}
+
+
+	//connector is not on this node. Find it in registry
+	registry.findConnection(k).then(connectionInfo => {
 		
-	// respond to all requests
-	app.use(function(req, res){
-		
-		//log(req.method, req.url)
-		stat.incoming++
-		
-		let headers = req.headers
-		let k = headers[constants.headers.KEY]
-		let connector = connectorSvc.findConnector(k)
-		if (!connector) {
-			res.writeHead(503, 'Connector not found')
+		//log('connectionInfo', connectionInfo)
+
+		let node = connectionInfo ? connectionInfo.node : null
+
+		if (!node || node.url === thisNode.url) {
+			let headers = {}
+			headers[constants.headers.NO_CONNECTOR] = 1
+			res.writeHead(503, 'Connector not found', headers)
 			res.end()
 			stat.missingConnector++
 			return
 		}
 		
-		let seq = ++seq_counter
-		headers[constants.headers.SEQ] = seq
-		let text = rawHttp.reqToText(req)
-		connector.send(text, seq, (err, result) => {
-			if (res.finished)
-				return
-			
-			if (err) {
-				res.writeHead(503, 'WS failure: ' + err)
-				res.end()
-				stat.connectorFailure++
-				return
-			}
-
-			//log('result.headers', result.headers)
-			res.writeHead(result.statusCode, result.headers)
-			res.statusMessage = result.statusMessage
-			if (result.body) {
-				res.write(result.body)
-			} else if (result.chunks) {
-				for (let c of result.chunks) {
-					//log('writing chunk', c.length)
-					res.write(c)
-				}	
-			}
-			
+		if (headers[constants.headers.FORWARDED]) {
+			res.writeHead(503, 'No further redirection')
 			res.end()
-		})
+			stat.noFurtherRedirection++
+			return
+		}
+		
+		//log('forwarding to:', node)
+
+		//Forward to another hub node which has the connector connection
+		stat.forwarded++
+		headers[constants.headers.FORWARDED] = 1	//prevent from further redirection
+
+		//hack for body parser. With text parser, without body it has an empty object
+		if (typeof req.body === 'object') {
+			delete req.body
+		}
+
+		rawHttp.doHttpCall(node.url, req, onResponseForwardToClient)
+	}).catch(e => {
+		log('Connector not found:', k, e.toString())
+		res.writeHead(503, 'Find connector error')
+		res.end()
+		stat.missingConnector++
 	})
+	
+	
+	function onResponseForwardToClient(err, result) {
+		if (res.finished)
+			return
+		
+		if (err) {
+			stat.connectorFailure++
+			res.writeHead(503, 'WS failure: ' + err)
+			res.end()				
+			return
+		}
+
+		let headers = result.headers
+		if (headers[constants.headers.NO_CONNECTOR])
+			registry.removeConnectionCache(k)
+		delete headers[constants.headers.NO_CONNECTOR]
+
+		//log('result.headers', result.headers)
+		res.writeHead(result.statusCode, headers)
+		res.statusMessage = result.statusMessage
+		if (result.body) {
+			res.write(result.body)
+		} else if (result.chunks) {
+			for (let c of result.chunks) {
+				//log('writing chunk', c.length)
+				res.write(c)
+			}
+		}
+		
+		res.end()
+	}
+}
+
+function init(app) {
+	app.use('/rest-bridge-forward/', forwardToConnectorByPathKey)
+	app.use(forwardToConnectorByHeaderKey)
 }
 
 module.exports = {

@@ -1,53 +1,8 @@
-const url = require('url')
 const WebSocket = require('ws')
-const http = require('http')
-const https = require('https')
 
 const {log} = require('../shared/log.js')(__filename)
 const rawHttp = require('../shared/raw-http.js')
 const constants = require('../shared/constants.js')
-
-function doHttpCall(baseUrl, req, callback) {
-	
-	let target = url.parse(baseUrl)
-
-	var options = {
-		hostname: target.hostname,
-		port: target.port,
-		path: req.path,
-		method: req.method,
-		headers: req.headers,
-		setHost: false,
-		timeout: 60000
-	}
-
-	let httpLib = target.protocol === 'http:' ? http : https
-
-	let request = httpLib.request(options, function(res) {
-
-		let respObj = {
-			httpVersion: res.httpVersion,
-			statusCode: res.statusCode,
-			statusMessage: res.statusMessage,
-			headers: res.headers,
-			body: []
-		}
-
-		res.on('data', function (chunk) {
-			respObj.body.push(chunk)
-		}).on('end', function() {
-			callback(null, respObj)
-		})
-	}).on('error', e => {
-		callback(e)
-	}).on('timeout', () => {
-		callback('timeout')
-	})
-
-	if (req.body)
-		request.write(req.body)
-	request.end()
-}
 
 function prepareHeaders(info) {
 	let ret = {}
@@ -117,11 +72,9 @@ function startConnector(options) {
 			auth: 'pandora',
 			headers: headers
 		}).on('open', () => {
-			log('ws open')
+			//log('ws open')
 			restartDelay = initialDelay
-			
-			//start heartbeat
-			heartbeatTimer = setInterval(() => ws.ping(), constants.HEARTBEAT_INTERVAL)
+			startHeartbeat()
 		}).on('close', (code, reason) => {
 			log('ws close', code, reason)
 			if (code === constants.AUTH_FAILURE)
@@ -130,8 +83,8 @@ function startConnector(options) {
 		}).on('error', e => {
 			log('ws error:', e.toString())
 			ws.close()
-		//}).on('ping', () => {
-		//	log('ws ping', data)
+		//}).on('ping', data => {
+		//	log('ws ping', data.toString())
 		//}).on('pong', () => {
 		//	log('ws pong', data)
 		}).on('unexpected-response', () => {
@@ -139,7 +92,12 @@ function startConnector(options) {
 			ws.terminate()
 		//}).on('upgrade', () => {
 		//	log('ws upgrade')
-		}).on('message', onMessage)
+		}).once('message', onFirstMessage)
+
+		function onFirstMessage(text) {
+			ws.on('message', onMessage)
+			log('Hub connected', text)
+		}
 
 		function onMessage(text) {
 			let req = parseRequestMessage(text)
@@ -152,7 +110,7 @@ function startConnector(options) {
 				return
 			}
 			
-			doHttpCall(target, req, callback)
+			rawHttp.doHttpCall(target, req, callback)
 
 			function callback(err, respObj) {
 				if (err) {
@@ -161,32 +119,51 @@ function startConnector(options) {
 				}
 				
 				respObj.headers[constants.headers.SEQ_RESP] = req.seq
-				if (respObj.body.length > 0)
-					respObj.headers[constants.headers.CHUNKS] = respObj.body.length
+				if (respObj.chunks.length > 0)
+					respObj.headers[constants.headers.CHUNKS] = respObj.chunks.length
 
 				let headerText = rawHttp.resToHead(respObj)
 
-				ws.send(headerText)
-				for (let chunk of respObj.body) {
-					//log('writing body chunk', chunk.length)
-					ws.send(chunk)
+				try {
+					ws.send(headerText)
+					for (let chunk of respObj.chunks) {
+						//log('writing body chunk', chunk.length)
+						ws.send(chunk)
+					}
+				} catch (e) {
+					log(e)
+					restart()
 				}
 			}
 		}
-		
-		function sendError(msg, seq) {
-			let headers = {}
-			headers[constants.headers.SEQ_RESP] = seq
-			let text = rawHttp.response(503, null, headers, msg)
-			ws.send(text)
-		}
-		
+	}
+
+			
+	function sendError(msg, seq) {
+		let headers = {}
+		headers[constants.headers.SEQ_RESP] = seq
+		let text = rawHttp.response(503, null, headers, msg)
+		safeWsCall('send', text)
+	}
+
+	function safeWsCall(method, arg) {
+		try {
+			ws[method](arg)
+		} catch (e) {
+			log(e)
+			restart()
+		}		
+	}
+
+	let heartbeatTimer
+	function startHeartbeat() {
+		const task = () => safeWsCall('ping')
+		heartbeatTimer = setInterval(task, constants.HEARTBEAT_INTERVAL)
 	}
 
 	const initialDelay = 1000
 	const maxDelay = 120 * 1000
-	let restartDelay = initialDelay
-	let heartbeatTimer
+	let restartDelay = initialDelay	
 	
 	function restart() {
 		if (ws)

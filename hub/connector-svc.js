@@ -3,10 +3,14 @@ const WebSocket = require('ws')
 const {log, error} = require('../shared/log.js')(__filename)
 const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')
-
+const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
 
-
+//----------------------
+//	Module data
+//----------------------
+let workingResp
+const connectors = {}
 
 const stat = {
 	//connections
@@ -29,8 +33,6 @@ const stat = {
 	errTimeout: 0,
 	errSendError: 0,
 }
-
-let workingResp
 
 function parseResMessage(text, id) {
 	let res = rawHttp.parseResp(text)
@@ -201,25 +203,25 @@ class RemoteConnector {
 		try {
 			this.ws.send(text, err => {
 				if (err) {
-					stat.errSendError++
-					this.stat.errSendError++
-					pending.finish(err)
-					return
+					onSendError(e)
 				}
 			})
 		} catch (e) {
+			onSendError(e)
+		}
+
+		function onSendError(e) {
 			stat.errSendError++
 			this.stat.errSendError++
 			log(e.toString())
+			pending.finish(err)
 		}
 	}
 }
 
-const connectors = {}
-
-function findConnector(/*k*/) {
-	//return connectors[k]
-	return connectors[Object.keys(connectors)[0]]
+function findConnector(k) {
+	return connectors[k]
+	//return connectors[Object.keys(connectors)[0]]
 }
 
 function monitorLiveness() {
@@ -241,6 +243,50 @@ function monitorLiveness() {
 }
 monitorLiveness()
 
+function initConnection(ws, req) {
+
+	stat.history_connected++
+	
+	const ip = req.connection.remoteAddress
+	
+	let clientInfo = retrieveClientInfo()
+	
+	clientInfo.ip = ip
+	
+	registry.onConnect(clientInfo).then(() => {
+		log('Incoming connector', clientInfo)
+
+		//send server info
+		let serverInfo = JSON.stringify(thisNode.format())
+		ws.send(serverInfo, err => {
+			if (err) {
+				log('Error sending hub info to connector', err.toString())
+				ws.terminate()
+			} else {
+				log('Connector accepted:', clientInfo.id)
+				new RemoteConnector(ws, clientInfo)
+			}
+		})
+
+	}).catch(e => {
+		stat.rejected++
+		log('Rejected', e, clientInfo)
+		//https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+		ws.close(constants.AUTH_FAILURE)
+	})
+
+	function retrieveClientInfo() {
+		let ret = {}
+		let prefix = constants.headers.PREFIX
+		for (let k in req.headers) {
+			if (k.startsWith(prefix)) {
+				ret[k.substring(prefix.length)] = req.headers[k]
+			}
+		}
+		return ret
+	}
+}
+
 function init(server/*, options*/) {
 	new WebSocket.Server({ 
 		server: server,
@@ -251,43 +297,13 @@ function init(server/*, options*/) {
 			//log('verifyClient', info.req.headers)
 			return true
 		}
-	}).on('connection', (ws, req) => {
-		
-		stat.history_connected++
-		
-		const ip = req.connection.remoteAddress
-		
-		let clientInfo = retrieveClientInfo()
-		clientInfo.ip = ip
-
-		if (!registry.onConnect(clientInfo)) {
-			stat.rejected++
-			log('Rejected', clientInfo)
-			
-			//https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-			ws.close(constants.AUTH_FAILURE)
-			return
-		}
-		log('Incoming connector', clientInfo)
-		
-		new RemoteConnector(ws, clientInfo)		
-		
-		function retrieveClientInfo() {
-			let ret = {}
-			let prefix = constants.headers.PREFIX
-			for (let k in req.headers) {
-				if (k.startsWith(prefix)) {
-					ret[k.substring(prefix.length)] = req.headers[k]
-				}
-			}
-			return ret
-		}
-	}).on('error', e => {
+	}).on('connection', initConnection)
+	.on('error', e => {
 		log('on error:', e)
-	}).on('headers', (/*headers, request*/) => {
-		//log('on headers')
-	}).on('listening', () => {
-		log('on listening')
+//	}).on('headers', (/*headers, request*/) => {
+//		log('on headers')
+//	}).on('listening', () => {
+//		log('on listening')
 	})
 }
 

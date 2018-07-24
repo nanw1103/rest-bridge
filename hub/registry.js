@@ -1,99 +1,133 @@
-const stat = {
-	registered: 0,
-	expiredReg: 0,
-	expiredDisconnect: 0
+const lru = require('tiny-lru')
+const thisNode = require('../shared/node.js')
+const {log, error} = require('../shared/log.js')(__filename)
+const FsStore = require('./fs-store.js')
+const CachedStore = require('./cached-store.js')
+
+let store = new CachedStore(new FsStore('/efs/rest-bridge-reg'), {
+	size: 2000,
+	expire: 5000
+})
+
+//The ConnectionCache is here to avoid unecessary IO to the store.
+//ConnectionCache is used per REST API call.
+const connectionCache = lru(2000, false, 0, 0)	//max, notify, ttl, expire
+
+function useStore(s) {
+	store = s
+	return registry
 }
 
-const connectors = {}
-const registrationSeq = []
-const disconnectedSeq = []
+function init() {
+	return store.init([
+		'reg',
+		'connect',
+		'disconnect',
+		'instance'
+	])
+}
 
 function register(info) {
-	stat.registered++
 	
 	let k = info.key
 	if (k)
 		delete info.key
 	else
-		k = String(Math.random()).substring(2)
+		k = Math.random().toString(36).substring(2).padEnd(12, '0')
 	
-	let holder = {
-		reg: info,
-		regTime: Date.now(),
-		active: false,
-		runtime: null,
-		lastConnect: 0,
-		lastDisconnect: 0
-	}
-
-	connectors[k] = holder
+	info.regTime = Date.now()
+	let item = 'reg/' + k
+	save(item, info)
 	
-	_deleteFromArray(registrationSeq, k)
-	registrationSeq.push(k)	
-	while (registrationSeq.length > 100) {
-		let oldest = registrationSeq.shift(1)
-		delete connectors[oldest]
-		stat.expiredReg++
-	}
-	
-	return instance
+	return registry
 }
 
-function onConnect(info) {
+async function onConnect(info) {
 	
 	let k = info.key
-	let holder = connectors[k]
-	if (!holder)
-		return false
 	
-	holder.runtime = info
-	holder.active = true
-	holder.lastConnect = Date.now()
-	
-	_deleteFromArray(registrationSeq, k)
-	_deleteFromArray(disconnectedSeq, k)
-	return true
+	let reg = await store.get('reg/' + k)
+
+	let item = 'connect/' + k
+	save(item, {
+		connector: info,
+		node: thisNodeInfo(),
+		time: Date.now()
+	})
 }
 
 function onDisconnect(info) {
 	let k = info.key
-	let holder = connectors[k]
-	if (!holder)
-		return
+	let item = 'disconnect/' + k
+	let now = Date.now()
+	save(item, {
+		node: thisNodeInfo(),
+		time: now
+	})
+}
+
+function save(name, obj) {
+	store.set(name, obj).catch(e => error('Fail writing', name))
+}
+
+function list(k) {
+	if (!k)
+		return store.list('/reg')
+	return store.get('reg/' + k)
+}
+
+function get(k) {
+	let ret = {
+		reg: null,
+		connect: null,
+		disconnect: null
+	}
 	
-	holder.active = false
-	holder.lastDisconnect = Date.now()
-	
-	_deleteFromArray(disconnectedSeq, k)
-	disconnectedSeq.push(k)
-	while (disconnectedSeq.length > 2000) {
-		let oldest = disconnectedSeq.shift(1)
-		delete connectors[oldest]
-		stat.expiredDisconnect++
+	let ignore = () => 0
+	return Promise.all([
+		store.get('reg/' + k).then(data => ret.reg = data).catch(ignore),
+		store.get('connect/' + k).then(data => ret.connect = data).catch(ignore),
+		store.get('disconnect/' + k).then(data => ret.disconnect = data).catch(ignore)
+	]).then(() => ret)
+}
+
+async function findConnection(k) {
+	let conn = connectionCache.get(k)
+	if (!conn) {
+		conn = await store.get('connect/' + k)
+		connectionCache.set(k, conn)
+	}	
+	return conn
+}
+
+function removeConnectionCache(k) {
+	connectionCache.remove(k)
+	//log('Removing connection cache', k)
+}
+
+function stat() {
+	//todo
+}
+
+
+function thisNodeInfo() {
+	return {
+		url: thisNode.url,
+		id: thisNode.id
 	}
 }
 
-function _deleteFromArray(array, obj) {
-	let i = array.indexOf(obj)
-	if (i < 0)
-		return
-	array.splice(i, 1)
-}
-
-function list() {
-	return {		
-		connectors: connectors,
-		registrationSeq: registrationSeq,
-		disconnectedSeq: disconnectedSeq
-	}
-}
-
-const instance = {
+const registry = {
+	init: init,
+	useStore: useStore,
 	stat: stat,
 	list: list,
-	register: register,	
+	get: get,
+	register: register,
 	onConnect: onConnect,
-	onDisconnect: onDisconnect
+	onDisconnect: onDisconnect,
+	findConnection: findConnection,
+	removeConnectionCache: removeConnectionCache
 }
 
-module.exports = instance
+module.exports = registry

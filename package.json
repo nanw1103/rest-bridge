@@ -1,33 +1,39 @@
 {
   "name": "rest-bridge",
-  "version": "0.0.1",
+  "version": "1.0.3",
   "description": "Expose REST service in private network to public network, via connector (in private network) and hub (public service).",
   "main": "index.js",
-  "dependencies": {
-    "body-parser": "^1.18.3",
-    "connect": "^3.2.0",
-    "ws": "^5.2.1"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "node test/basic.js"
-  },
-  "keywords": [
-    "REST",
-    "cloud connector",
-    "service redirect"
-  ],
-  "author": "nanw1103",
-  "license": "ISC",
   "directories": {
     "test": "test"
+  },
+  "scripts": {
+    "test": "node test/basic.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nanw1103/rest-bridge.git"
   },
+  "author": "nanw1103",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/nanw1103/rest-bridge/issues"
   },
-  "homepage": "https://github.com/nanw1103/rest-bridge#readme"
+  "homepage": "https://github.com/nanw1103/rest-bridge#readme",
+  "keywords": [
+    "REST",
+	"redirect",
+	"forward",
+    "cloud connector",
+    "service redirect",
+	"api redirect",
+	"api bridge"
+  ],
+  "dependencies": {
+    "cluster-collector": "^1.0.0",
+    "body-parser": "^1.18.3",
+    "connect": "^3.2.0",
+    "ws": "^5.2.1",
+    "cluster-collector": "^1.0.0",
+    "tiny-lru": "^1.6.1"
+  }
 }
