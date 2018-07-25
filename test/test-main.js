@@ -20,7 +20,7 @@ function test(testForward, testLargeBody, store) {
 (async function() {
 	await test(false, false)	//default mem-store
 	await test(true, false)	//default cluster-mem-store
-	await test(true, false, 'fs-store:/efs/rest-bridge')
+	await test(true, false, 'fs-store:/rest-bridge-repo')
 	await test(true, true)	//default cluster-mem-store
-	await test(true, true, 'fs-store:/efs/rest-bridge')
+	await test(true, true, 'fs-store:/rest-bridge-repo')
 })().catch(console.error)
