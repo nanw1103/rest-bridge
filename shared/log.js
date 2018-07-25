@@ -87,7 +87,7 @@ function formatLogContent(args, prefix) {
 	maskPassword(args)
 	let logContent = util.format.apply(null, args)
 	let timeString = new Date().toLocaleString()
-	logContent = timeString + prefix + thisNode.short() + ' - ' + logContent
+	logContent = timeString + prefix + thisNode.short() + ' ' + logContent
 	return logContent + '\n'
 }
 
@@ -153,13 +153,12 @@ function findModuleName(fileName) {
 	return name	
 }
 
-module.exports = function(fileName, pad) {
+module.exports = function(fileName) {
 
 	let prefix
 	let moduleName = findModuleName(fileName)
 	if (moduleName) {
-		if (pad)
-			moduleName = moduleName.padEnd(pad)
+		moduleName = moduleName.padEnd(14)
 		prefix = '[' + moduleName + ']'
 	} else
 		prefix = ''

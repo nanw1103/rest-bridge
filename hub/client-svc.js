@@ -56,7 +56,6 @@ function forwardToConnectorByHeaderKey(req, res) {
 }
 
 function forwardImpl(k, req, res) {
-	
 	let headers = req.headers
 
 	let connector = connectorSvc.findConnector(k)
@@ -105,9 +104,10 @@ function forwardImpl(k, req, res) {
 			delete req.body
 		}
 
+		//log('forwarding to', node.url, req.url)
 		rawHttp.doHttpCall(node.url, req, onResponseForwardToClient)
 	}).catch(e => {
-		log('Connector not found:', k, e.toString())
+		log('Connector not found:', k, String(e))
 		res.writeHead(503, 'Find connector error')
 		res.end()
 		stat.missingConnector++
@@ -130,9 +130,9 @@ function forwardImpl(k, req, res) {
 			registry.removeConnectionCache(k)
 		delete headers[constants.headers.NO_CONNECTOR]
 
-		//log('result.headers', result.headers)
-		res.writeHead(result.statusCode, headers)
-		res.statusMessage = result.statusMessage
+		//log('result.statusCode', result.statusCode)
+		//log('result.headers', headers)
+		res.writeHead(result.statusCode, result.statusMessage, headers)
 		if (result.body) {
 			res.write(result.body)
 		} else if (result.chunks) {

@@ -9,7 +9,7 @@ function doHttpCall(baseUrl, req, callback) {
 	var options = {
 		hostname: target.hostname,
 		port: target.port,
-		path: req.path,
+		path: req.url,
 		method: req.method,
 		headers: req.headers,
 		setHost: false,
@@ -133,7 +133,7 @@ function removeHeader(text, key) {
 function parseReq(data) {
 	let ret = {
 		method: null,
-		path: null,
+		url: null,
 		headers: {},
 		body: null
 	}
@@ -142,7 +142,7 @@ function parseReq(data) {
 	ret.method = data.substring(0, pathStart)
 	++pathStart
 	let pathEnd = data.indexOf(' ', pathStart)
-	ret.path = data.substring(pathStart, pathEnd)
+	ret.url = data.substring(pathStart, pathEnd)
 	
 	let lineEnd = data.indexOf('\n', pathEnd)
 	let lineStart = lineEnd + 1

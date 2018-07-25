@@ -43,34 +43,19 @@ app.use(function onerror(err, req) {
 })
 
 function create(options, callback) {
-	/*
-	let store
-	if (options.store) {
-		//'fs-store:/efs/rest-bridge-reg',
-		let fsStoreType = 'fs-store:'
-		if (options.store.startsWith(fsStoreType)) {
-			let FsStore = require('./fs-store.js')
-			store = new FsStore(options.store.substring(fsStoreType.length))
-		} else {
-			throw 'Unknown store type: ' + options.store
-		}
-	} else {
-		store = require('./mem-store.js')
-	}
-	registry.useStore(store)
-	*/
 	
 	if (options.id)
 		thisNode.id = options.id
-	
-	const ips = getIPs()
-	console.log('network', ips)
-	
 	let port = Number.parseInt(options.port)
 	thisNode.port = port
+
+	log('Creating node', JSON.stringify(options))
+
+	const ips = getIPs()
+	log('Network', JSON.stringify(ips))
 	thisNode.url = `http://${ips._first}:${port}`
 
-	log('Creating node', options)
+	registry.configStore(options.store)
 	
 	server.listen(port, options.host, err => {
 		if (err) {

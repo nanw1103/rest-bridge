@@ -3,6 +3,10 @@ const WebSocket = require('ws')
 const {log} = require('../shared/log.js')(__filename)
 const rawHttp = require('../shared/raw-http.js')
 const constants = require('../shared/constants.js')
+const thisNode = require('../shared/node.js')
+
+//hack for log
+thisNode.port = 'conn'
 
 function prepareHeaders(info) {
 	let ret = {}
@@ -57,7 +61,10 @@ let closed
 
 function startConnector(options) {
 
-	log('Starting connector to', options.hub)
+	log('Starting connector', JSON.stringify(options.info))
+	log('Connecting to hub', options.hub)
+
+	//log('Starting connector to', options.hub)
 	closed = false
 	
 	let headers = prepareHeaders(options.info)
@@ -104,7 +111,7 @@ function startConnector(options) {
 			if (!req)
 				return
 			
-			let target = matchRoute(req.path)
+			let target = matchRoute(req.url)
 			if (!target) {
 				sendError('No matching route', req.seq)
 				return

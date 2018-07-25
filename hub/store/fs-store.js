@@ -80,7 +80,7 @@ class FsStore {
 		})		
 	}
 	
-	exists(k) {
+	has(k) {
 		let path = this.repo + '/' + k
 		return new Promise(resolve => {
 			let cb = err => resolve(!err)
@@ -88,9 +88,17 @@ class FsStore {
 		})
 	}
 
+	remove(k) {
+		let path = this.repo + '/' + k
+		return new Promise((resolve, reject) => {
+			let cb = err => err ? reject(err) : resolve()
+			fs.unlink(path, cb)
+		})
+	}
+	
 	async init(paths) {
 		const md = async name => {
-			let exists = await this.exists(name)
+			let exists = await this.has(name)
 			if (exists)
 				return
 			return this.mkdir(name)

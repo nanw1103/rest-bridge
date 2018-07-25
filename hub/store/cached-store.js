@@ -35,6 +35,11 @@ class CachedStore {
 		return v
 	}
 	
+	remove(k) {
+		this.cache.remove(k)
+		return this.impl.remove(k)
+	}
+	
 	list(path) {
 		let v
 		if (!this.cache.has(path)) {
@@ -46,8 +51,10 @@ class CachedStore {
 		return v
 	}
 	
-	exists(k) {
-		return this.impl.exists(k)
+	async has(k) {
+		if (this.cache.has(k))
+			return true
+		return this.impl.has(k)
 	}
 
 	init(options) {

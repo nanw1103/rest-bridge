@@ -5,17 +5,33 @@ const registry = require('./registry.js')
 const clusterCollector = require('cluster-collector')
 
 function create(options) {
-	if (options.cluster) {
-		return createCluster(options)
+
+	let actual = Object.assign({}, options)
+	
+	if (!actual.store) {
+		if (Number.parseInt(actual.nodes) > 0) {
+			actual.store = 'cluster-mem-store:rest-bridge'
+		} else {
+			actual.store = 'mem-store'
+		}
+	}
+	
+	registry.configStore(actual.store)
+	registry.init()
+		.then(() => log('Store initialized'))
+		.catch(err => {
+			error(err)
+			process.exit(10001)
+		})
+			
+	if (Number.parseInt(actual.nodes) > 0) {
+		return createCluster(actual)
 	} else {
-		return createSingleNode(options)
+		return createSingleNode(actual)
 	}
 }
 
-async function createCluster(options) {
-
-	await registry.init()
-	console.log('Store initialized')
+function createCluster(options) {
 
 	const cluster = require('cluster')
 	cluster.setupMaster({
@@ -29,7 +45,7 @@ async function createCluster(options) {
 			let w = cluster.fork({
 				RB_NODE_ID: thisNode.id,
 				PORT: worker.rest_bridge_port,
-				REST_BRIDGE_STORE: options.cluster.store
+				REST_BRIDGE_STORE: options.store
 			})
 			w.rest_bridge_port = worker.rest_bridge_port
 		}
@@ -37,8 +53,8 @@ async function createCluster(options) {
 		
 	}).on('disconnect', worker => {
 		log(`worker ${worker.process.pid} disconnect`)
-	}).on('fork', worker => {
-		log(`worker ${worker.process.pid} forked`)
+//	}).on('fork', worker => {
+//		log(`worker ${worker.process.pid} forked`)
 //	}).on('listening', (worker, address) => {
 //		log(`worker ${worker.process.pid} listening on ${address.address}:${address.port}`)
 	//}).on('message', (worker, message, handle) => {
@@ -48,12 +64,12 @@ async function createCluster(options) {
 //		log(`setup`)
 	})
 
-	for (let i = 0; i < options.cluster.nodes; i++) {
+	for (let i = 0; i < options.nodes; i++) {
 		let port = Number.parseInt(options.port) + i
 		let w = cluster.fork({
 			RB_NODE_ID: thisNode.id,
 			PORT: port,			
-			REST_BRIDGE_STORE: options.cluster.store
+			REST_BRIDGE_STORE: options.store
 		})
 		w.rest_bridge_port = port
 	}
@@ -62,7 +78,6 @@ async function createCluster(options) {
 function createSingleNode(options) {
 	const node = require('./node-impl.js')
 	node.create(options)
-	return Promise.resolve()
 }
 
 module.exports = {

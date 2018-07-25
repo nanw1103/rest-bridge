@@ -1,21 +1,17 @@
 const lru = require('tiny-lru')
 const thisNode = require('../shared/node.js')
 const {log, error} = require('../shared/log.js')(__filename)
-const FsStore = require('./fs-store.js')
-const CachedStore = require('./cached-store.js')
+const storeFactory = require('./store/factory.js')
 
-let store = new CachedStore(new FsStore('/efs/rest-bridge-reg'), {
-	size: 2000,
-	expire: 5000
-})
+let store
 
 //The ConnectionCache is here to avoid unecessary IO to the store.
 //ConnectionCache is used per REST API call.
 const connectionCache = lru(2000, false, 0, 0)	//max, notify, ttl, expire
 
-function useStore(s) {
-	store = s
-	return registry
+function configStore(config) {
+	log('Using store:', config)	
+	store = storeFactory.create(config)
 }
 
 function init() {
@@ -119,7 +115,7 @@ function thisNodeInfo() {
 
 const registry = {
 	init: init,
-	useStore: useStore,
+	configStore: configStore,
 	stat: stat,
 	list: list,
 	get: get,
