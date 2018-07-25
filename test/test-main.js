@@ -12,7 +12,7 @@ function test(testForward, testLargeBody, store) {
 	
 	return new Promise((resolve, reject) => {
 		let onExit = code => code === 0 ? resolve() : reject()		
-		fork('./test-impl.js', args)
+		fork(__dirname + '/test-impl.js', args)
 			.on('exit', onExit)
 	})
 }
