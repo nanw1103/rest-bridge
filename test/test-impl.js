@@ -1,3 +1,5 @@
+'use strict'
+
 const {log, error} = require('../shared/log.js')(__filename)
 const delay = millis => new Promise(resolve => setTimeout(resolve, millis))
 
@@ -23,17 +25,17 @@ for (let i = 2; i < process.argv.length; i++) {
 if (role)
 	log('Node started:', role)
 
-switch (role) {
+function main() {
+	switch (role) {
 	case 'test-hub':		return createHub()
 	case 'test-connector':	return createConnector()
 	case 'test-target':		return createTargetService()
 	case 'test-master':		return createTestMaster()
-	case undefined:			return ignore()
+	case undefined:			return
 	default:				throw 'Invalid role ' + role
+	}
 }
-
-function ignore() {
-}
+main()
 
 //------------------------------------------------------------------------------------------
 //	Create REST-bridge Hub
@@ -106,7 +108,7 @@ function createTargetService() {
 			res.end()
 		}
 	})
-	targetServer.listen(10762, err => log)
+	targetServer.listen(10762, log)
 }
 
 //------------------------------------------------------------------------------------------
@@ -114,7 +116,7 @@ function createTargetService() {
 //	Client simulator sends thousands of requests to hub and verifies results.
 //------------------------------------------------------------------------------------------
 async function createClientSimulator() {
-	const http = require('http');
+	const http = require('http')
 
 	let processed = 0
 	let total = 0
@@ -211,8 +213,6 @@ async function createClientSimulator() {
 }
 
 function createChild(role) {
-	const util = require('util')
-	//const fork = util.promisify(require('child_process').fork)
 	const fork = require('child_process').fork
 	let modulePath = process.argv[1]
 	let args = process.argv.slice(2)

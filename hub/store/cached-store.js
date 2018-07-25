@@ -11,7 +11,7 @@ class CachedStore {
 	constructor(store, options) {
 		this.impl = store
 		this.options = Object.assign({}, defaultOptions, options)
-		this.cache = lru(options.size, false, options.ttl, options.expire);
+		this.cache = lru(options.size, false, options.ttl, options.expire)
 	}
 	
 	set(k, obj) {

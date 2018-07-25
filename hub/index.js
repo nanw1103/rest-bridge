@@ -2,7 +2,7 @@ const { log, error } = require('../shared/log.js')(__filename)
 const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
 
-const clusterCollector = require('cluster-collector')
+require('cluster-collector')
 
 function create(options) {
 
@@ -53,15 +53,15 @@ function createCluster(options) {
 		
 	}).on('disconnect', worker => {
 		log(`worker ${worker.process.pid} disconnect`)
-//	}).on('fork', worker => {
-//		log(`worker ${worker.process.pid} forked`)
-//	}).on('listening', (worker, address) => {
-//		log(`worker ${worker.process.pid} listening on ${address.address}:${address.port}`)
+	//}).on('fork', worker => {
+	//	log(`worker ${worker.process.pid} forked`)
+	//}).on('listening', (worker, address) => {
+	//	log(`worker ${worker.process.pid} listening on ${address.address}:${address.port}`)
 	//}).on('message', (worker, message, handle) => {
 	}).on('online', worker => {
 		log(`worker ${worker.process.pid} online`)
-//	}).on('setup', settings => {
-//		log(`setup`)
+	//}).on('setup', settings => {
+	//	log(`setup`)
 	})
 
 	for (let i = 0; i < options.nodes; i++) {
