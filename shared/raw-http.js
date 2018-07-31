@@ -171,15 +171,17 @@ function parseResp(text) {
 		body: ''
 	}
 	
-	let start = text.indexOf(' ')
-	ret.httpVersion = text.substring(5, start)
+	let lineEnd = text.indexOf('\n')
+	let firstLine = text.substring(0, lineEnd)
+	
+	let start = firstLine.indexOf(' ')
+	ret.httpVersion = firstLine.substring(5, start)
 
 	++start
 	let end = text.indexOf(' ', start)	
 	ret.statusCode = Number.parseInt(text.substring(start, end))
-
-	let lineEnd = text.indexOf('\n')
-	ret.statusMessage = text.substring(end + 1, lineEnd)	
+	
+	ret.statusMessage = firstLine.substring(end + 1, lineEnd)	
 	
 	while (1) {
 		let lineStart = lineEnd + 1

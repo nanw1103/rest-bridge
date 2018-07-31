@@ -1,34 +1,45 @@
 const { log, error } = require('../shared/log.js')(__filename)
 const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
+const clusterCall = require('cluster-call')
 
 require('cluster-collector')
 
-function create(options) {
+let globalOptions = null
 
-	let actual = Object.assign({}, options)
+clusterCall.getOptions = () => globalOptions
+
+async function create(options) {
 	
-	if (!actual.store) {
-		if (Number.parseInt(actual.nodes) > 0) {
-			actual.store = 'cluster-mem-store:rest-bridge'
+	let actual = Object.assign({}, options)
+	await initializeStore(actual)
+
+	actual.port = Number.parseInt(actual.port)
+	if (!Number.isInteger(actual.port))
+		throw new Error('Invalid configuration. options.port must be integer. Configured: ' + options.port)
+	
+	globalOptions = actual
+	globalOptions.id = thisNode.id
+	
+	if (Number.parseInt(actual.nodes) > 1)
+		return createCluster(actual)
+	else
+		return createSingleNode(actual)
+}
+
+async function initializeStore(options) {
+	if (!options.store) {
+		if (Number.parseInt(options.nodes) > 1) {
+			options.store = 'cluster-mem-store:rest-bridge'
 		} else {
-			actual.store = 'mem-store'
+			options.store = 'mem-store'
 		}
 	}
 	
-	registry.configStore(actual.store)
-	registry.init()
-		.then(() => log('Store initialized'))
-		.catch(err => {
-			error(err)
-			process.exit(10001)
-		})
-			
-	if (Number.parseInt(actual.nodes) > 0) {
-		return createCluster(actual)
-	} else {
-		return createSingleNode(actual)
-	}
+	log('Using store:', options.store)	
+	registry.configStore(options.store)
+	await registry.init()
+	log('Store initialized')
 }
 
 function createCluster(options) {
@@ -37,21 +48,10 @@ function createCluster(options) {
 	cluster.setupMaster({
 		exec: __dirname + '/child.js'
 	})
-	
-	cluster.on('exit', (worker, code, signal) => {
-		log(`worker ${worker.process.pid} died. code=${code}. signal=${signal}`)
-		
-		function restart() {
-			let w = cluster.fork({
-				RB_NODE_ID: thisNode.id,
-				PORT: worker.rest_bridge_port,
-				REST_BRIDGE_STORE: options.store
-			})
-			w.rest_bridge_port = worker.rest_bridge_port
-		}
-		setTimeout(restart, 5000)
-		
-	}).on('disconnect', worker => {
+
+	cluster
+	//.on('exit', (worker, code, signal) => {})
+	.on('disconnect', worker => {
 		log(`worker ${worker.process.pid} disconnect`)
 	//}).on('fork', worker => {
 	//	log(`worker ${worker.process.pid} forked`)
@@ -65,13 +65,17 @@ function createCluster(options) {
 	})
 
 	for (let i = 0; i < options.nodes; i++) {
-		let port = Number.parseInt(options.port) + i
-		let w = cluster.fork({
-			RB_NODE_ID: thisNode.id,
-			PORT: port,			
-			REST_BRIDGE_STORE: options.store
+		startWorker(i)
+	}
+	
+	function startWorker(index) {
+		cluster.fork({
+			RB_INDEX: index
+		}).on('exit', (code, signal) => {
+			log(`worker ${port} died. code=${code}. signal=${signal}`)
+			setTimeout(() => startWorker(index), 5000)
+			process.exit(1234)
 		})
-		w.rest_bridge_port = port
 	}
 }
 

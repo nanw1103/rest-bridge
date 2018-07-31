@@ -9,7 +9,6 @@ const registry = require('./registry.js')
 //----------------------
 //	Module data
 //----------------------
-let workingResp
 const connectors = {}
 
 const stat = {
@@ -122,6 +121,39 @@ class RemoteConnector {
 		stat.response++
 		this.stat.response++
 		
+		stat.response_bytes += message.length
+		this.stat.response_bytes += message.length
+		
+		let res
+		if (typeof message === 'string') {
+			res = parseResMessage(message, this.info.id)
+		} else {
+			let headerEnd = message.readInt32LE()
+			let headerText = message.toString('utf8', 8, headerEnd)
+			res = parseResMessage(headerText, this.info.id)
+			
+			//console.log('header len', headerText.length, 'body len', message.length -headerEnd)
+			if (message.length > headerEnd)
+				res.body = message.slice(headerEnd)
+		}
+		
+		if (!res) {
+			stat.errParsingResponse++
+			this.stat.errParsingResponse++
+			return
+		}
+		
+		let workingResp = this.pendingResp[res.seq]
+		if (!workingResp) {
+			stat.errMissingWorkingResp++
+			this.stat.errMissingWorkingResp++
+			log(`[${this.info.id}]: pending resp not found: ${res.seq}.`)
+			return
+		}
+		
+		
+		workingResp.finish(null, res)
+		/*
 		let type = typeof message
 		if (type === 'string') {
 			let res = parseResMessage(message, this.info.id)
@@ -134,7 +166,7 @@ class RemoteConnector {
 			if (workingResp) {
 				stat.errDupWorkingResp++
 				this.stat.errDupWorkingResp++
-				throw 'Invalid state: existing workingResp'
+				throw 'Invalid state: existing workingResp.'
 			}
 			workingResp = this.pendingResp[res.seq]
 			if (!workingResp) {
@@ -163,6 +195,7 @@ class RemoteConnector {
 				return	//discard
 			workingResp.finish('Invalid msg type: ' + type)
 		}
+		*/
 	}
 	
 	send(text, seq, callback) {
@@ -177,19 +210,18 @@ class RemoteConnector {
 		//log('sending seq', seq)
 
 		let pending = {
-			res: null,
-			finish: err => {
-				if (workingResp === pending)
-					workingResp = null
+			finish: (err, res) => {
 				clearTimeout(pending.monitor)
 				delete this.pendingResp[seq]
-				callback(err, pending.res)
+				callback(err, res)
 			},
+			/*
 			appendBody: chunk => {
 				pending.res.chunks.push(chunk)
 				if (pending.res.chunks.length === pending.res.numChunks)
 					pending.finish()
 			},
+			*/
 			monitor: setTimeout(() => {
 				stat.errTimeout++
 				this.stat.errTimeout++
@@ -199,11 +231,12 @@ class RemoteConnector {
 		}
 		
 		this.pendingResp[seq] = pending
-		
+
+		let _this_stat = this.stat		
 		try {
 			this.ws.send(text, err => {
 				if (err) {
-					onSendError(e)
+					onSendError(err)
 				}
 			})
 		} catch (e) {
@@ -212,9 +245,9 @@ class RemoteConnector {
 
 		function onSendError(e) {
 			stat.errSendError++
-			this.stat.errSendError++
-			log(e.toString())
-			pending.finish(err)
+			_this_stat.errSendError++
+			log('Error ws send', e.toString())
+			pending.finish(e)
 		}
 	}
 }
@@ -254,7 +287,7 @@ function initConnection(ws, req) {
 	clientInfo.ip = ip
 	
 	registry.onConnect(clientInfo).then(() => {
-		log('Incoming connector', clientInfo)
+		log('Incoming connector', JSON.stringify(clientInfo))
 
 		//send server info
 		let serverInfo = JSON.stringify(thisNode.format())

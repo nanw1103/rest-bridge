@@ -107,7 +107,7 @@ function forwardImpl(k, req, res) {
 		//log('forwarding to', node.url, req.url)
 		rawHttp.doHttpCall(node.url, req, onResponseForwardToClient)
 	}).catch(e => {
-		log('Connector not found:', k, String(e))
+		log('Connector not found:', k, e)
 		res.writeHead(503, 'Find connector error')
 		res.end()
 		stat.missingConnector++
@@ -120,29 +120,37 @@ function forwardImpl(k, req, res) {
 		
 		if (err) {
 			stat.connectorFailure++
-			res.writeHead(503, 'WS failure: ' + err)
+			res.writeHead(503, 'WS failure: ' + String(err))
 			res.end()				
 			return
 		}
 
 		let headers = result.headers
-		if (headers[constants.headers.NO_CONNECTOR])
+		if (headers[constants.headers.NO_CONNECTOR]) {
 			registry.removeConnectionCache(k)
-		delete headers[constants.headers.NO_CONNECTOR]
+			delete headers[constants.headers.NO_CONNECTOR]
+		}
 
 		//log('result.statusCode', result.statusCode)
 		//log('result.headers', headers)
-		res.writeHead(result.statusCode, result.statusMessage, headers)
-		if (result.body) {
-			res.write(result.body)
-		} else if (result.chunks) {
-			for (let c of result.chunks) {
-				//log('writing chunk', c.length)
-				res.write(c)
-			}
-		}
 		
-		res.end()
+		//handle 'Invalid character in statusMessage'
+		try {
+			res.writeHead(result.statusCode, result.statusMessage, headers)
+			if (result.body) {
+				res.write(result.body)
+			} else if (result.chunks) {
+				for (let c of result.chunks) {
+					//log('writing chunk', c.length)
+					res.write(c)
+				}
+			}
+			
+			res.end()
+		} catch (e) {
+			error('Error write back to client', e)
+			log(result)
+		}
 	}
 }
 

@@ -1,2 +1,105 @@
 # rest-bridge
 Expose REST service in private network to public network, via connector (in private network) and hub (public service).
+
+![rest-bridge architecture](http://url/to/img.png)
+
+# Example - Hub
+
+```javascript
+const hub = require('rest-bridge/hub')
+
+let options = {
+	
+	//-------------------------------------------------------------------------------------
+	//	Client interface, which handles requests from clients
+	//-------------------------------------------------------------------------------------
+	port: 80,		//Port to accept client requests. If there are multiple worker nodes in
+					//this cluster, this port automatically increases on each node according 
+					//to node index. This is required by internal forwarding. 
+
+	//nodes: 1,		//How many worker nodes in this cluster. E.g. number of CPUs.
+	
+	//store: '',	//Datastore for sharing state between rest-bridge clusters. 
+					//Change it only if you are setting up multiple rest-bridge clusters 
+					//in multiple machines/containers, e.g. for high availability.
+					//Use shared file store like: 'fs-store:/your/path/on/nfs', or create your own store.
+					//It is NOT necessary if you are setting up a single cluster with multiple nodes 
+					//on only one VM.
+}
+
+hub.create(config).then(() => {	
+	//demo purpose
+	hub.registry.register({
+		key: 'demoKey',
+		description: 'demo connector'
+	})
+}).catch(console.error)
+
+```
+
+# Example - Connector
+
+```javascript
+
+const rbconnector = require('rest-bridge/connector')
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+
+rbconnector.start({
+	
+	hub: 'ws://localhost',	//which hub to connect to
+	
+	info: {					//information of this connector
+		key: 'demoKey',		//the pairing key
+		id: 'demoConnector'
+	},
+	
+	target: 'http://localhost:10762',	//the target http service
+	
+	//additionally, path based routing an be specified using a map,
+	//regular expression for request path as key, and target as value.
+	//Example:
+	/*
+	routes: {		
+		'/demo': {
+			target: 'http://localhost:8081'			
+		},
+		'/products': 'https://www.vmware.com',
+		'.*': 'https://www.vmware.com'
+	}
+	*/
+})
+
+```
+
+# Example - rest-bridge client
+
+```javascript
+const http = require('http')
+
+//To do a rest-bridge call, a pairing key must be specified, so as to distinguish 
+//which connector to use. The pairing key can be specified either in request 
+//header, or request path.
+
+//Method 1 - Specify pairing key in header
+let options = {
+	host: 'localhost',
+	path: '/hello',
+	headers: {
+		'x-rest-bridge-key': 'demoKey'	//specify which connector we are using
+	}
+}
+http.get(options, resp => {
+	let body = ''
+	resp.setEncoding('utf8')
+		.on('data', chunk => body += chunk)
+		.on('end', () => console.log(body))
+}).on('error', console.error)
+.end()
+	
+//Method 2 - Specify pairing key in request path.
+//This method requires a fixed base path to be added
+//http.get('http://localhost/rest-bridge-forward/<pairingKey>/hello')
+
+
+```

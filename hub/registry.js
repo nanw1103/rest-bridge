@@ -10,7 +10,6 @@ let store
 const connectionCache = lru(2000, false, 0, 0)	//max, notify, ttl, expire
 
 function configStore(config) {
-	log('Using store:', config)	
 	store = storeFactory.create(config)
 }
 
@@ -34,8 +33,12 @@ function register(info) {
 	info.regTime = Date.now()
 	let item = 'reg/' + k
 	save(item, info)
-	
 	return registry
+}
+
+function remove(k) {
+	removeConnectionCache(k)
+	return store.remove(k)
 }
 
 async function onConnect(info) {
@@ -120,6 +123,7 @@ const registry = {
 	list: list,
 	get: get,
 	register: register,
+	remove: remove,
 	onConnect: onConnect,
 	onDisconnect: onDisconnect,
 	findConnection: findConnection,

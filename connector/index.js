@@ -5,8 +5,6 @@ const rawHttp = require('../shared/raw-http.js')
 const constants = require('../shared/constants.js')
 const thisNode = require('../shared/node.js')
 
-//hack for log
-thisNode.port = 'conn'
 
 function prepareHeaders(info) {
 	let ret = {}
@@ -53,6 +51,7 @@ function routeMatcherFactory(options) {
 			if (r.pattern.test(path))
 				return r.target
 		}
+		return options.target
 	}
 }
 
@@ -116,7 +115,6 @@ function startConnector(options) {
 				sendError('No matching route', req.seq)
 				return
 			}
-			
 			rawHttp.doHttpCall(target, req, callback)
 
 			function callback(err, respObj) {
@@ -124,21 +122,41 @@ function startConnector(options) {
 					sendError('Connector error: ' + err, req.seq)
 					return
 				}
-				
 				respObj.headers[constants.headers.SEQ_RESP] = req.seq
-				if (respObj.chunks.length > 0)
-					respObj.headers[constants.headers.CHUNKS] = respObj.chunks.length
+				//if (respObj.chunks.length > 0)
+				//	respObj.headers[constants.headers.CHUNKS] = respObj.chunks.length
 
+				let totalLength = 0
+				let chunks = respObj.chunks
+				for (let chunk of chunks)
+					totalLength += chunk.length
+				
+				
 				let headerText = rawHttp.resToHead(respObj)
-
+				//console.log('header len', headerText.length, 'body len', totalLength)				
+				let headerBuf = Buffer.from(headerText, 'utf8')
+				totalLength += headerBuf.length
+				chunks.unshift(headerBuf)
+				
+				let lenBuf = Buffer.alloc(8)
+				let headerEnd = lenBuf.length + headerBuf.length
+				lenBuf.writeInt32LE(headerEnd)
+				chunks.unshift(lenBuf)
+				totalLength += lenBuf.length
+								
+				
+				let wholeBuf = Buffer.concat(chunks, totalLength)
 				try {
+					ws.send(wholeBuf)
+					/*
 					ws.send(headerText)
 					for (let chunk of respObj.chunks) {
 						//log('writing body chunk', chunk.length)
 						ws.send(chunk)
 					}
+					*/
 				} catch (e) {
-					log(e)
+					log('Error send back to ws', e)
 					restart()
 				}
 			}
@@ -149,7 +167,7 @@ function startConnector(options) {
 	function sendError(msg, seq) {
 		let headers = {}
 		headers[constants.headers.SEQ_RESP] = seq
-		let text = rawHttp.response(503, null, headers, msg)
+		let text = rawHttp.response(503, msg, headers)
 		safeWsCall('send', text)
 	}
 
@@ -157,7 +175,7 @@ function startConnector(options) {
 		try {
 			ws[method](arg)
 		} catch (e) {
-			log(e)
+			log('Error ws call', method, e)
 			restart()
 		}		
 	}
@@ -171,7 +189,7 @@ function startConnector(options) {
 	const initialDelay = 1000
 	const maxDelay = 120 * 1000
 	let restartDelay = initialDelay	
-	
+	let restartTimer
 	function restart() {
 		if (ws)
 			ws.terminate()
@@ -187,7 +205,8 @@ function startConnector(options) {
 		if (restartDelay > maxDelay)
 			restartDelay = maxDelay
 		log('reconnect in', restartDelay / 1000)
-		setTimeout(createClient, restartDelay)
+		clearTimeout(restartTimer)
+		restartTimer = setTimeout(createClient, restartDelay)
 	}
 	
 	createClient()

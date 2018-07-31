@@ -21,8 +21,13 @@ function getThisNode() {
 const API_LIST = [{
 	name: 'register',
 	method: 'post',
-	path: '/register',
+	path: '/registry',
 	description: 'Register a new connector'
+}, {
+	name: 'Delete registered connector',
+	method: 'delete',
+	path: '/registry/<key>',
+	description: 'Remove a connector'
 }, {
 	name: 'registry',
 	method: 'get',
@@ -44,63 +49,59 @@ const API_LIST = [{
 	path: '/connectors',
 	description: 'Get connector information. Scope: cluster instance'
 }, {
-	name: 'connectors-1',
-	method: 'get',
-	path: '/connectors-1',
-	description: 'Get connector information. Scope: single node'	
-}, {
 	name: 'stat',
 	method: 'get',
 	path: '/stat',
 	description: 'Get statistics. Scope: cluster instance'
-}, {
-	name: 'stat-1',
-	method: 'get',
-	path: '/stat-1',
-	description: 'Get statistics. Scope: single node'
 }, {
 	name: 'env',
 	method: 'get',
 	path: '/env',
 	description: 'Get environments. Scope: cluster instance'
 }, {
-	name: 'env-1',
+	name: 'node',
 	method: 'get',
-	path: '/env-1',
-	description: 'Get environments. Scope: single node'
+	path: '/node',
+	description: 'Get single node info'
 }]
 
 function init(app) {
 	
-	app.use('/rest-bridge/register', function (req, res) {
+	app.use('/rest-bridge/registry', function (req, res) {
 		
-		if (req.method !== 'POST') {
+		if (req.method === 'POST') {
+			let data
+			if (req.body !== '')
+				data = JSON.parse(req.body)
+			else
+				data = {}
+			let info = registry.register(data)
+			
+			_sendJSON(res, info)
+		} else if (req.method === 'GET') {
+			if (req.url === '/') {
+				registry.list()
+					.then(info => _sendJSON(res, info))
+					.catch(err => _sendError(res, err))
+			} else {
+				let k = req.url.substring(1)
+				registry.get(k)
+					.then(info => _sendJSON(res, info))
+					.catch(err => _sendError(res, err))
+			}
+		} else if (req.method === 'DELETE') {
+			let k = req.url.substring(1)
+			registry.delete(k)
+				.then(() => _sendJSON(res, {}))
+				.catch(err => _sendError(res, err))
+		} else {
 			res.writeHead(405)
 			res.end()
-			return
 		}
-		
-		let data
-		if (req.body !== '')
-			data = JSON.parse(req.body)
-		else
-			data = {}
-		let info = registry.register(data)
-		
-		_sendJSON(res, info)
 	})
 	
 	app.use('/rest-bridge/registry', function (req, res) {
-		if (req.url === '/') {
-			registry.list()
-				.then(info => _sendJSON(res, info))
-				.catch(err => _sendError(res, err))
-		} else {
-			let k = req.url.substring(1)
-			registry.get(k)
-				.then(info => _sendJSON(res, info))
-				.catch(err => _sendError(res, err))
-		}
+		
 	})
 	
 	app.use('/rest-bridge/nodes', function (req, res) {
@@ -109,20 +110,20 @@ function init(app) {
 			.catch(err => _sendError(res, err))
 	})
 	
-	app.use('/rest-bridge/connectors-1', function (req, res) {
-		_sendJSON(res, getConnectors())
-	})
-	
 	app.use('/rest-bridge/connectors', function (req, res) {
 		clusterCollector.collect('connectors')
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
+	app.use('/rest-bridge/node', function (req, res) {
+		_sendJSON(res, thisNode)
+	})
+	
 	app.use('/rest-bridge', function (req, res) {
 		//console.log(req.url)
 		if (req.url !== '/') {
-			res.writeHeader(404)
+			res.writeHead(404)
 			res.end()
 			return
 		}

@@ -1,26 +1,82 @@
-const fork = require('child_process').fork
+(async function() {
+	
+	await test('basic', {
+		hub: 1,
+		connector: 1,
+		client: 1,
+		target: 1,		
+		largeBody: false,
+		store: '',		//default mem-store
+		request: 10000
+	})
+	
+	await test('internal forward', {
+		hub: 2,
+		connector: 1,
+		client: 1,
+		target: 1,
+		largeBody: false,
+		store: '',		//default cluster-mem-store
+		request: 10000
+	})
+	
+	await test('large body and forward', {
+		hub: 2,
+		connector: 1,
+		client: 1,
+		target: 1,		
+		largeBody: true,
+		store: '',		//default cluster-mem-store
+		request: 200
+	})
+	
+	await test('file store', {
+		hub: 2,
+		connector: 1,
+		client: 1,
+		target: 1,		
+		largeBody: false,
+		store: 'fs-store:/rest-bridge-test',
+		request: 10000
+	})
+	
+	await test('multiple nodes', {
+		hub: 3,
+		connector: 7,
+		client: 20,
+		target: 3,
+		largeBody: true,
+		store: 'fs-store:/rest-bridge-test',
+		request: 100
+	})
+})().catch(e => {
+	if (e)
+		console.error('Failed', e)
+	else
+		console.error('Failed')
+})
 
-function test(testForward, testLargeBody, store) {
+function test(name, options) {
 	
-	console.log('---------------------------------------------------------------------------')
-	console.log(`testForward=${testForward}, testLargeBody=${testLargeBody}, store=${store ? store : 'default'}`)
-	console.log('---------------------------------------------------------------------------')
+	console.log('------------------------------------------------------------------------------------------')
+	console.log(`Test [${name}]`, JSON.stringify(options))
+	console.log('------------------------------------------------------------------------------------------')
+
+	let args = [options.hub, options.connector, options.client, options.largeBody, options.store]
 	
-	let args = ['role=test-master', `testForward=${testForward}`, `testLargeBody=${testLargeBody}`]
-	if (store)
-		args.push(`store=${store}`)
+	process.env.rbtest_numHubNodes = options.hub
+	process.env.rbtest_numConnectors = options.connector
+	process.env.rbtest_numClients = options.client
+	process.env.rbtest_numTargets = options.target
+	process.env.rbtest_testLargeBody = options.largeBody
+	process.env.rbtest_store = options.store
+	process.env.rbtest_numRequests = options.request
+	
+	const fork = require('child_process').fork
 	
 	return new Promise((resolve, reject) => {
 		let onExit = code => code === 0 ? resolve() : reject()		
-		fork(__dirname + '/test-impl.js', args)
+		fork(__dirname + '/impl.js')
 			.on('exit', onExit)
 	})
 }
-
-(async function() {
-	await test(false, false)	//default mem-store
-	await test(true, false)	//default cluster-mem-store
-	await test(true, false, 'fs-store:/rest-bridge-repo')
-	await test(true, true)	//default cluster-mem-store
-	await test(true, true, 'fs-store:/rest-bridge-repo')
-})().catch(console.error)

@@ -13,41 +13,23 @@ const clientSvc = require('./client-svc.js')
 const statSvc = require('./stat-svc.js')
 const registry = require('./registry.js')
 
-const app = connect()
+function onError(err, req, res, next) {
+	let msg = err.toString()
+	log('err~', msg)
+	res.writeHead(503)
+	res.end(err.toString())
+}
 
-// parse urlencoded request bodies into req.body
+let managementServer
+let clientServer
+let connectorServer
 
-//app.use(bodyParser.raw({
-//	type: '*/*',
-//	inflate: false,
-//	limit: '1024kb'
-//}))
-
-app.use(bodyParser.text({
-	type: '*/*',
-	limit: '1024kb'
-}))
-
-
-const server = http.createServer(app)
-
-connectorSvc.init(server)
-statSvc.init(app)
-mgmtSvc.init(app)
-clientSvc.init(app)
-
-app.use(function onerror(err, req) {
-	log(err)
-	req.writeHeader(500)
-	req.end(err.toString())
-})
-
-function create(options, callback) {
+function create(options) {
 	
 	if (options.id)
 		thisNode.id = options.id
 	let port = Number.parseInt(options.port)
-	thisNode.port = port
+	thisNode.name = port
 
 	log('Creating node', JSON.stringify(options))
 
@@ -56,20 +38,69 @@ function create(options, callback) {
 	thisNode.url = `http://${ips._first}:${port}`
 
 	registry.configStore(options.store)
-	
-	server.listen(port, options.host, err => {
+
+	//create management app
+	let managementApp = connect()
+	managementApp.use(bodyParser.text({
+		type: '*/*',
+		limit: '1024kb'
+	}))
+	statSvc.init(managementApp)
+	mgmtSvc.init(managementApp)
+	managementServer = http.createServer(managementApp)
+	if (!options.managementPort)
+		options.managementPort = options.port
+	managementServer.listen(options.managementPort, options.managementHost, err => {
 		if (err) {
-			error(err)
-		} else {
-			let host = options.host
-			if (!host)
-				host = '*'
-			log(`Hub started on ${host}:${options.port}`)
-		}
-		
-		if (callback)
-			callback(err)
+			error('Error starting management server', err)
+			process.exit(11)
+		}				
+		log(`Hub - management server started: ${options.managementHost || ''}:${options.managementPort}`)
 	})
+		
+	//create client app
+	if (!options.managementPort || options.managementPort === options.port) {
+		clientSvc.init(managementApp)		
+		clientServer = managementServer
+		log('Sharing client server & management server')
+	} else {
+		let clientApp = connect()
+		clientApp.use(bodyParser.text({
+			type: '*/*',
+			limit: '1024kb'
+		}))
+		clientSvc.init(clientApp)
+		clientApp.use(onError)
+		clientServer = http.createServer(clientApp)
+		clientServer.listen(options.port, options.clientHost, err => {
+			if (err) {
+				error('Error starting client server', err)
+				process.exit(12)
+			}				
+			log(`Hub - client server started: ${options.clientHost || ''}:${options.port}`)
+		})
+	}
+	
+	managementApp.use(onError)
+	
+	//create connector service
+	if (!options.connectorPort || options.connectorPort === options.port) {
+		connectorServer = clientServer
+		log('Sharing connector server & client server')
+	} else if (options.connectorPort === options.managementPort) {
+		connectorServer = managementServer
+		log('Sharing connector server & management server')
+	} else {
+		connectorServer = http.createServer()
+		connectorServer.listen(options.connectorPort, options.connectorHost, err => {
+			if (err) {
+				error('Error starting connector server', err)
+				process.exit(13)
+			}				
+			log(`Hub - connector server started: ${options.connectorHost || ''}:${options.connectorPort}`)
+		})
+	}
+	connectorSvc.init(connectorServer)
 }
 
 function getIPs() {
@@ -95,9 +126,10 @@ function getIPs() {
 }
 
 function close() {
-	server.close(() => {
-		connectorSvc.close()
-	})
+	managementServer.close()
+	clientServer.close()
+	connectorServer.close()
+	connectorSvc.close()
 }
 
 const DEFAULTS = {

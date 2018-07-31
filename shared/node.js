@@ -12,34 +12,29 @@ process.on('unhandledRejection', (reason, p) => {
 	process.exit(12)
 })
 
+let index = Number.parseInt(process.env.rb_node_id || 0)
+let name = require('cluster').isMaster ? 'MASTER' : index
+
 const inst = {
-	version: 102,
+	version: 115,
 	startTime: Date.now(),
 	id: Math.random().toString(36).slice(2).padEnd(12, '0'),
-	pid: process.pid
-}
-
-function format() {
-	inst.upTime = Date.now() - inst.startTime
-	return Object.assign({}, inst)
-}
-
-function short() {
-	let port
-	if (inst.port)
-		port = String(inst.port).padEnd(6, ' ')
-	else
-		port = 'MASTER'
-	
-	return inst.id + '/' + port
+	pid: process.pid,
+	index: index,
+	name: name
 }
 
 Object.defineProperties(inst, {
 	format: {
-		value: format
+		value: function() {
+			inst.upTime = Date.now() - inst.startTime
+			return Object.assign({}, inst)
+		}
 	},
 	short: {
-		value: short
+		value: function() {	
+			return inst.id + '/' + String(inst.name).padEnd(6, ' ')
+		}
 	}
 })
 

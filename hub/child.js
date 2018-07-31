@@ -1,8 +1,15 @@
-const {log} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')(__filename)
 const node = require('./node-impl.js')
+const clusterCall = require('cluster-call')
 
-node.create({
-	id: process.env.RB_NODE_ID,
-	port: process.env.PORT,
-	store: process.env.REST_BRIDGE_STORE,
-})
+clusterCall('master')
+	.getOptions()
+	.then(options => {
+		options.port += Number.parseInt(process.env.RB_INDEX)
+		return options
+	}).then(options => node.create(options))
+	.catch(e => {
+		error(e)
+		process.exit(1)
+	})
+

@@ -28,25 +28,14 @@ function getNodeEnv() {
 
 function init(app) {
 	
-	app.use('/rest-bridge/stat-1', function (req, res) {
-		let info = getNodeStat()
-		_sendJSON(res, info)
-	})
-	
 	app.use('/rest-bridge/stat', function (req, res) {
 		
 		clusterCollector.collect('stat')
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
-
-	app.use('/rest-bridge/env-1', function (req, res) {
-		let info = getNodeEnv()
-		_sendJSON(res, info)
-	})
 	
-	app.use('/rest-bridge/env', function (req, res) {
-		
+	app.use('/rest-bridge/env', function (req, res) {		
 		clusterCollector.collect('env')
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
