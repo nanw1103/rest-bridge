@@ -102,3 +102,97 @@ http.get(options, resp => {
 
 
 ```
+
+# Management Interface
+
+http://<hub_host>:<management_port>/rest-bridge
+```json
+[
+    {
+        "name": "register",
+        "method": "post",
+        "path": "/registry",
+        "description": "Register a new connector",
+        "href": "http://localhost/rest-bridge/registry"
+    },
+    {
+        "name": "Delete registered connector",
+        "method": "delete",
+        "path": "/registry/<key>",
+        "description": "Remove a connector",
+        "href": "http://localhost/rest-bridge/registry/<key>"
+    },
+    {
+        "name": "registry",
+        "method": "get",
+        "path": "/registry",
+        "description": "Get registry information",
+        "href": "http://localhost/rest-bridge/registry"
+    },
+    {
+        "name": "registry.connector",
+        "method": "get",
+        "path": "/registry/<connector-key>",
+        "description": "Get information of specific connector",
+        "href": "http://localhost/rest-bridge/registry/<connector-key>"
+    },
+    {
+        "name": "nodes",
+        "method": "get",
+        "path": "/nodes",
+        "description": "Get nodes in this cluster instance",
+        "href": "http://localhost/rest-bridge/nodes"
+    },
+    {
+        "name": "connectors",
+        "method": "get",
+        "path": "/connectors",
+        "description": "Get connector information. Scope: cluster instance",
+        "href": "http://localhost/rest-bridge/connectors"
+    },
+    {
+        "name": "stat",
+        "method": "get",
+        "path": "/stat",
+        "description": "Get statistics. Scope: cluster instance",
+        "href": "http://localhost/rest-bridge/stat"
+    },
+    {
+        "name": "env",
+        "method": "get",
+        "path": "/env",
+        "description": "Get environments. Scope: cluster instance",
+        "href": "http://localhost/rest-bridge/env"
+    },
+    {
+        "name": "node",
+        "method": "get",
+        "path": "/node",
+        "description": "Get single node info",
+        "href": "http://localhost/rest-bridge/node"
+    }
+]
+```
+
+# High Availability
+Create each hub instance as a cluster, using a shared store:
+
+```javascript
+let hubOptions = {
+	port: 80,
+	nodes: require('os').cpus().length,
+	store: 'fs-store:/efs/rest-bridge-repo'
+```
+
+And then create multiple clusters with load balancers, e.g. AWS Elasticbeanstalk + EFS or ElasticCache
+ 
+Requests will be forwarded internally between the nodes on demand. So clients or connectors only care about connecting to a single service point.
+
+![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/doc/rest-bridge-HA.png)
+
+# Security
+Method 1: In hub options, specify different network interface for management endpoint, client endpoint, and connector endpoint. Use firewall/security group/api gateway to control the access
+
+Method 2: Control context based access on api gateway/proxy/nginx, etc.
+
+
