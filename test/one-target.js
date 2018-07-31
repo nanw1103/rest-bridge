@@ -25,8 +25,8 @@ app.use('/test', function(req, res) {
 	}
 })
 
-app.use(function(err, req, res, next){
-	log('err~', err.toString())
+app.use(function(err){
+	log('err~', String(err))
 })
 
 const port = config.targetPort

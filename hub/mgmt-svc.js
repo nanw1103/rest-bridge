@@ -100,10 +100,6 @@ function init(app) {
 		}
 	})
 	
-	app.use('/rest-bridge/registry', function (req, res) {
-		
-	})
-	
 	app.use('/rest-bridge/nodes', function (req, res) {
 		clusterCollector.collect('nodes')
 			.then(ret => _sendJSON(res, ret))

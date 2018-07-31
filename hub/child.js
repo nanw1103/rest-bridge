@@ -1,4 +1,4 @@
-const {log, error} = require('../shared/log.js')(__filename)
+const { error } = require('../shared/log.js')(__filename)
 const node = require('./node-impl.js')
 const clusterCall = require('cluster-call')
 

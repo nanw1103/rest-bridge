@@ -3,7 +3,7 @@ const connect = require('connect')
 const bodyParser = require('body-parser')
 const http = require('http')
 
-const {log} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')(__filename)
 
 const thisNode = require('../shared/node.js')
 
@@ -13,7 +13,7 @@ const clientSvc = require('./client-svc.js')
 const statSvc = require('./stat-svc.js')
 const registry = require('./registry.js')
 
-function onError(err, req, res, next) {
+function onError(err, req, res) {
 	let msg = err.toString()
 	log('err~', msg)
 	res.writeHead(503)

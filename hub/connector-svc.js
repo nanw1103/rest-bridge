@@ -1,6 +1,6 @@
 const WebSocket = require('ws')
 
-const {log, error} = require('../shared/log.js')(__filename)
+const {log} = require('../shared/log.js')(__filename)
 const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')
 const thisNode = require('../shared/node.js')
@@ -331,13 +331,13 @@ function init(server/*, options*/) {
 			return true
 		}
 	}).on('connection', initConnection)
-	.on('error', e => {
-		log('on error:', e)
-//	}).on('headers', (/*headers, request*/) => {
-//		log('on headers')
-//	}).on('listening', () => {
-//		log('on listening')
-	})
+		.on('error', e => {
+			log('on error:', e)
+		//	}).on('headers', (/*headers, request*/) => {
+		//		log('on headers')
+		//	}).on('listening', () => {
+		//		log('on listening')
+		})
 }
 
 function list() {

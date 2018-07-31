@@ -1,4 +1,4 @@
-const { log, error } = require('../shared/log.js')(__filename)
+const { log } = require('../shared/log.js')(__filename)
 const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
 const clusterCall = require('cluster-call')
@@ -50,19 +50,19 @@ function createCluster(options) {
 	})
 
 	cluster
-	//.on('exit', (worker, code, signal) => {})
-	.on('disconnect', worker => {
-		log(`worker ${worker.process.pid} disconnect`)
-	//}).on('fork', worker => {
-	//	log(`worker ${worker.process.pid} forked`)
-	//}).on('listening', (worker, address) => {
-	//	log(`worker ${worker.process.pid} listening on ${address.address}:${address.port}`)
-	//}).on('message', (worker, message, handle) => {
-	}).on('online', worker => {
-		log(`worker ${worker.process.pid} online`)
-	//}).on('setup', settings => {
-	//	log(`setup`)
-	})
+		//.on('exit', (worker, code, signal) => {})
+		.on('disconnect', worker => {
+			log(`worker ${worker.process.pid} disconnect`)
+		//}).on('fork', worker => {
+		//	log(`worker ${worker.process.pid} forked`)
+		//}).on('listening', (worker, address) => {
+		//	log(`worker ${worker.process.pid} listening on ${address.address}:${address.port}`)
+		//}).on('message', (worker, message, handle) => {
+		}).on('online', worker => {
+			log(`worker ${worker.process.pid} online`)
+		//}).on('setup', settings => {
+		//	log(`setup`)
+		})
 
 	for (let i = 0; i < options.nodes; i++) {
 		startWorker(i)
@@ -72,7 +72,7 @@ function createCluster(options) {
 		cluster.fork({
 			RB_INDEX: index
 		}).on('exit', (code, signal) => {
-			log(`worker ${port} died. code=${code}. signal=${signal}`)
+			log(`worker ${index} died. code=${code}. signal=${signal}`)
 			setTimeout(() => startWorker(index), 5000)
 			process.exit(1234)
 		})

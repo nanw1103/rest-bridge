@@ -1,6 +1,6 @@
 const lru = require('tiny-lru')
 const thisNode = require('../shared/node.js')
-const {log, error} = require('../shared/log.js')(__filename)
+const {error} = require('../shared/log.js')(__filename)
 const storeFactory = require('./store/factory.js')
 
 let store
@@ -45,7 +45,7 @@ async function onConnect(info) {
 	
 	let k = info.key
 	
-	let reg = await store.get('reg/' + k)
+	await store.get('reg/' + k)
 
 	let item = 'connect/' + k
 	save(item, {
@@ -66,7 +66,7 @@ function onDisconnect(info) {
 }
 
 function save(name, obj) {
-	store.set(name, obj).catch(e => error('Fail writing', name))
+	store.set(name, obj).catch(e => error('Fail writing', name, String(e)))
 }
 
 function list(k) {

@@ -18,7 +18,7 @@ http.get(options, resp => {
 		.on('data', chunk => body += chunk)
 		.on('end', () => console.log(body))
 }).on('error', console.error)
-.end()
+	.end()
 	
 //Method 2 - Specify pairing key in request path.
 //This method requires a fixed base path to be added

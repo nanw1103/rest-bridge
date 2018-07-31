@@ -1,5 +1,3 @@
-const {log, error} = require('../../shared/log.js')(__filename)
-
 function isInterface(obj, methods) {
 	for (let name of methods) {
 		if (typeof obj[name] !== 'function')
@@ -24,7 +22,7 @@ function create(config) {
 	}
 
 	if (typeof config === 'function') {
-		return create(s())
+		return create(config())
 	} 
 
 	if (typeof config !== 'string') {
@@ -43,22 +41,28 @@ function create(config) {
 	}
 
 	switch (type) {
-		case 'mem-store':			
-			let MemStore = require('./mem-store.js')
-			return new MemStore
-		case 'cluster-mem-store':
-			let ClusterMemStore = require('./cluster-mem-store.js')
-			return new ClusterMemStore(param)
-		case 'fs-store':
-			//'fs-store:/efs/rest-bridge-reg'
-			const CachedStore = require('./cached-store.js')
-			const FsStore = require('./fs-store.js')
-			return new CachedStore(new FsStore(param), {
-				size: 2000,
-				expire: 5000
-			})			
-		default:
-			throw new Error('Unsupported store: ' + config)
+	case 'mem-store':
+	{
+		let MemStore = require('./mem-store.js')
+		return new MemStore
+	}
+	case 'cluster-mem-store':
+	{
+		let ClusterMemStore = require('./cluster-mem-store.js')
+		return new ClusterMemStore(param)
+	}
+	case 'fs-store':
+	{
+		const CachedStore = require('./cached-store.js')
+		const FsStore = require('./fs-store.js')
+		return new CachedStore(new FsStore(param), {
+			size: 2000,
+			expire: 5000
+		})	
+	}
+		
+	default:
+		throw new Error('Unsupported store: ' + config)
 	}
 }
 

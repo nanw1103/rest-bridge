@@ -3,8 +3,6 @@ const WebSocket = require('ws')
 const {log} = require('../shared/log.js')(__filename)
 const rawHttp = require('../shared/raw-http.js')
 const constants = require('../shared/constants.js')
-const thisNode = require('../shared/node.js')
-
 
 function prepareHeaders(info) {
 	let ret = {}

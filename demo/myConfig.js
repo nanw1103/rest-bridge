@@ -3,12 +3,16 @@ module.exports = {
 	//-------------------------------------------------------------------------------------
 	//	Client interface, which handles requests from clients
 	//-------------------------------------------------------------------------------------
-	port: 80,				//Port to accept client requests. If there are multiple worker nodes in
-								//this cluster, this port automatically increases on each node according 
-								//to node index. This is required by internal forwarding. 
-								//In real case, you may need a load balancer before the hub to expose
-								//a unified end point for clients.
-	//host: '0.0.0.0',	//Host address for clients. By default bind to all interfaces
+
+	//Port to accept client requests. If there are multiple worker nodes in
+	//this cluster, this port automatically increases on each node according 
+	//to node index. This is required by internal forwarding. 
+	//In real case, you may need a load balancer before the hub to expose
+	//a unified end point for clients.
+	port: 80,			
+	
+	//Host address for clients. By default bind to all interfaces
+	//host: '0.0.0.0',	
 	
 	//-------------------------------------------------------------------------------------
 	//	Connector interface, which accepts connections from connectors.
@@ -17,9 +21,12 @@ module.exports = {
 	//	Different from client interface, the connector interface is always the same on all workers 
 	//	in one NodeJs cluster.
 	//-------------------------------------------------------------------------------------
-	//connectorPort: 80,		//Port to accept connectors. If not specified, client port will be used.
-	//connectorHost: '0.0.0.0',	//Host address for connectors. By default bind to all interfaces. 
-								//If this is different from client host, the port must be different
+	//Port to accept connectors. If not specified, client port will be used.
+	//connectorPort: 80,		
+
+	//Host address for connectors. By default bind to all interfaces. 
+	//If this is different from client host, the port must be different
+	//connectorHost: '0.0.0.0',	
 	
 	//-------------------------------------------------------------------------------------
 	//	Management interface configuration
@@ -28,19 +35,26 @@ module.exports = {
 	//	Different from client interface, the management interface is always the same on 
 	//	all workers in one NodeJs cluster.
 	//-------------------------------------------------------------------------------------
-	//managementPort: 82,		//Port for management. 
-	//managementHost: '0.0.0.0',//Host for management. By default bind to all interfaces
-								//If this is different from client host, the port must be different
+	
+	//Port for management. 
+	//managementPort: 82,		
+
+	//Host for management. By default bind to all interfaces
+	//If this is different from client host, the port must be different
+	//managementHost: '0.0.0.0',
 	
 	//-------------------------------------------------------------------------------------
 	//	Cluster configuration
 	//-------------------------------------------------------------------------------------
-	//nodes: 1,					//How many worker nodes in this cluster. E.g. number of CPUs.
+	//How many worker nodes in this cluster. E.g. number of CPUs.
+	//nodes: 1,
 	
-	//store: '',				//Datastore for sharing state between rest-bridge clusters. 
-								//Change it only if you are setting up multiple rest-bridge clusters 
-								//in multiple machines/containers, e.g. for high availability.
-								//Use shared file store like: 'fs-store:/your/path/on/nfs', or create your own store.
-								//It is NOT necessary if you are setting up a single cluster with multiple nodes 
-								//on only one VM.
+	//Datastore for sharing state between rest-bridge clusters. 
+	//Change it only if you are setting up multiple rest-bridge clusters 
+	//in multiple machines/containers, e.g. for high availability.
+	//Use shared file store like: 'fs-store:/your/path/on/nfs', or create your own store.
+	//It is NOT necessary if you are setting up a single cluster with multiple nodes 
+	//on only one VM.
+
+	//store: '',				
 }

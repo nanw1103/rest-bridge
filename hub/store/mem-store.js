@@ -21,7 +21,7 @@ class MemStore {
 	}
 	
 	list(path) {
-		if (path[s.length - 1] !== '/')
+		if (path[path.length - 1] !== '/')
 			path += '/'
 		let keys = Object.keys(this._map)
 		let items = keys.filter(v => v.startsWith(path))
@@ -32,7 +32,7 @@ class MemStore {
 		return k in this._map ? Promise.resolve() : Promise.reject()
 	}
 	
-	async init(paths) {
+	async init() {
 	}
 }
 

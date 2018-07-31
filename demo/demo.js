@@ -1,5 +1,5 @@
 
-const demoDelay = millis => new Promise(resolve => setTimeout(resolve, millis));
+const demoDelay = millis => new Promise(resolve => setTimeout(resolve, millis))
 const fork = module => require('child_process').fork(__dirname + '/' + module);
 
 //This demo shows how hub, connector, target and http client works.
