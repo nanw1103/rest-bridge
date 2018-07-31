@@ -24,4 +24,4 @@ const fork = module => require('child_process').fork(__dirname + '/' + module);
 	return new Promise(resolve => fork('myDemoCall.js').on('exit', resolve))
 })()
 	.catch(console.error)
-	//.then(process.exit)
+	.then(process.exit)
