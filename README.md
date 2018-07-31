@@ -1,7 +1,7 @@
 # rest-bridge
 Expose REST service in private network to public network, via connector (in private network) and hub (public service).
 
-![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-overview.png)
+![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-overview.png?raw=true)
 
 # Example - Hub
 
@@ -192,7 +192,7 @@ And then create multiple clusters with load balancers, e.g. AWS Elasticbeanstalk
  
 Requests will be forwarded internally between the nodes on demand. So clients or connectors only care about connecting to a single service point.
 
-![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-HA.png)
+![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-HA.png?raw=true)
 
 # Security
 Method 1: In hub options, specify different network interface for management endpoint, client endpoint, and connector endpoint. Use firewall/security group/api gateway to control the access
