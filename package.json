@@ -1,6 +1,6 @@
 {
   "name": "rest-bridge",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Expose REST service in private network to public network, via connector (in private network) and hub (public service).",
   "main": "index.js",
   "directories": {
