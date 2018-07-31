@@ -4,6 +4,11 @@ Expose REST service in private network to public network, via connector (in priv
 ![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-overview.png?raw=true)
 
 
+# Features
+* Firewall friendly: all http/ws
+* HA
+* Registration process to control valid connectors
+
 # Example - Hub
 
 ```javascript
@@ -37,10 +42,6 @@ hub.create(config).then(() => {
 
 ```
 
-# Features
-* Firewall friendly: all http/ws
-* HA
-* Registration process to control valid connectors
 
 # Example - Connector
 
