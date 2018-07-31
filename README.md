@@ -1,7 +1,7 @@
 # rest-bridge
 Expose REST service in private network to public network, via connector (in private network) and hub (public service).
 
-![rest-bridge architecture](http://url/to/img.png)
+![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/doc/rest-bridge-overview.png)
 
 # Example - Hub
 
@@ -10,21 +10,20 @@ const hub = require('rest-bridge/hub')
 
 let options = {
 	
-	//-------------------------------------------------------------------------------------
-	//	Client interface, which handles requests from clients
-	//-------------------------------------------------------------------------------------
-	port: 80,		//Port to accept client requests. If there are multiple worker nodes in
-					//this cluster, this port automatically increases on each node according 
-					//to node index. This is required by internal forwarding. 
+	port: 80,	//Port to accept client requests. If there are multiple worker nodes in
+			//this cluster, this port automatically increases on each node according 
+			//to node index. This is required by internal forwarding. In real case, 
+			//you may want to have a load balancer on top of it so as to provide a 
+			//unique end point for connectors and clients.
 
-	//nodes: 1,		//How many worker nodes in this cluster. E.g. number of CPUs.
+	//nodes: 1,	//How many worker nodes in this cluster. E.g. number of CPUs.
 	
 	//store: '',	//Datastore for sharing state between rest-bridge clusters. 
-					//Change it only if you are setting up multiple rest-bridge clusters 
-					//in multiple machines/containers, e.g. for high availability.
-					//Use shared file store like: 'fs-store:/your/path/on/nfs', or create your own store.
-					//It is NOT necessary if you are setting up a single cluster with multiple nodes 
-					//on only one VM.
+			//Change it only if you are setting up multiple rest-bridge clusters 
+			//in multiple machines/containers, e.g. for high availability.
+			//Use shared file store like: 'fs-store:/your/path/on/nfs', or create your own store.
+			//It is NOT necessary if you are setting up a single cluster with multiple nodes 
+			//on only one VM.
 }
 
 hub.create(config).then(() => {	
@@ -49,7 +48,7 @@ rbconnector.start({
 	
 	hub: 'ws://localhost',	//which hub to connect to
 	
-	info: {					//information of this connector
+	info: {				//information of this connector
 		key: 'demoKey',		//the pairing key
 		id: 'demoConnector'
 	},
