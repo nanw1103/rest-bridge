@@ -174,3 +174,25 @@ http://<hub_host>:<management_port>/rest-bridge
 ]
 ```
 
+# High Availability
+Create each hub instance as a cluster, using a shared store:
+
+```javascript
+let hubOptions = {
+	port: 80,
+	nodes: require('os').cpus().length,
+	store: 'fs-store:/efs/rest-bridge-repo'
+```
+
+And then create multiple clusters with load balancers, e.g. AWS Elasticbeanstalk + EFS or ElasticCache
+ 
+Requests will be forwarded internally between the nodes on demand. So clients or connectors only care about connecting to a single service point.
+
+![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/doc/rest-bridge-HA.png)
+
+# Security
+Method 1: In hub options, specify different network interface for management endpoint, client endpoint, and connector endpoint. Use firewall/security group/api gateway to control the access
+
+Method 2: Control context based access on api gateway/proxy/nginx, etc.
+
+
