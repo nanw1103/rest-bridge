@@ -103,6 +103,9 @@ http.get(options, resp => {
 
 ```
 
+# Configuration Details
+https://github.com/nanw1103/rest-bridge/blob/master/demo/myConfig.js
+
 # Management Interface
 
 http://<hub_host>:<management_port>/rest-bridge
