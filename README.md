@@ -182,6 +182,7 @@ let hubOptions = {
 	port: 80,
 	nodes: require('os').cpus().length,
 	store: 'fs-store:/efs/rest-bridge-repo'
+}
 ```
 
 And then create multiple clusters with load balancers, e.g. AWS Elasticbeanstalk + EFS or ElasticCache
