@@ -102,3 +102,75 @@ http.get(options, resp => {
 
 
 ```
+
+# Management Interface
+
+http://<hub_host>:<management_port>/rest-bridge
+```json
+[
+    {
+        "name": "register",
+        "method": "post",
+        "path": "/registry",
+        "description": "Register a new connector",
+        "href": "http://localhost/rest-bridge/registry"
+    },
+    {
+        "name": "Delete registered connector",
+        "method": "delete",
+        "path": "/registry/<key>",
+        "description": "Remove a connector",
+        "href": "http://localhost/rest-bridge/registry/<key>"
+    },
+    {
+        "name": "registry",
+        "method": "get",
+        "path": "/registry",
+        "description": "Get registry information",
+        "href": "http://localhost/rest-bridge/registry"
+    },
+    {
+        "name": "registry.connector",
+        "method": "get",
+        "path": "/registry/<connector-key>",
+        "description": "Get information of specific connector",
+        "href": "http://localhost/rest-bridge/registry/<connector-key>"
+    },
+    {
+        "name": "nodes",
+        "method": "get",
+        "path": "/nodes",
+        "description": "Get nodes in this cluster instance",
+        "href": "http://localhost/rest-bridge/nodes"
+    },
+    {
+        "name": "connectors",
+        "method": "get",
+        "path": "/connectors",
+        "description": "Get connector information. Scope: cluster instance",
+        "href": "http://localhost/rest-bridge/connectors"
+    },
+    {
+        "name": "stat",
+        "method": "get",
+        "path": "/stat",
+        "description": "Get statistics. Scope: cluster instance",
+        "href": "http://localhost/rest-bridge/stat"
+    },
+    {
+        "name": "env",
+        "method": "get",
+        "path": "/env",
+        "description": "Get environments. Scope: cluster instance",
+        "href": "http://localhost/rest-bridge/env"
+    },
+    {
+        "name": "node",
+        "method": "get",
+        "path": "/node",
+        "description": "Get single node info",
+        "href": "http://localhost/rest-bridge/node"
+    }
+]
+```
+
