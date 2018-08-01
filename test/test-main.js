@@ -71,6 +71,7 @@ function test(name, options) {
 	process.env.rbtest_testLargeBody = options.largeBody
 	process.env.rbtest_store = options.store
 	process.env.rbtest_numRequests = options.request
+	process.env.rbtest_requestInterval = 0
 	
 	const fork = require('child_process').fork
 	

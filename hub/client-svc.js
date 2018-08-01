@@ -58,12 +58,17 @@ function forwardToConnectorByHeaderKey(req, res) {
 function forwardImpl(k, req, res) {
 	let headers = req.headers
 
+	let includeHubInfo = headers[constants.headers.REQ_HUB_INFO]
+	
 	let connector = connectorSvc.findConnector(k)
 	if (connector) {
+		
+		removeRbHeaders(headers)
+		
 		//redirect to connector	connected to this node			
 		let seq = ++seq_counter
 		headers[constants.headers.SEQ] = seq
-			
+				
 		let text = rawHttp.reqToText(req)
 		connector.send(text, seq, onResponseForwardToClient)
 		return
@@ -131,6 +136,15 @@ function forwardImpl(k, req, res) {
 			delete headers[constants.headers.NO_CONNECTOR]
 		}
 
+		if (includeHubInfo) {
+			let hubInfo = headers[constants.headers.HUB_INFO]
+			if (hubInfo)
+				hubInfo = thisNode.short().trim() + '/' + hubInfo
+			else
+				hubInfo = thisNode.short().trim()
+			headers[constants.headers.HUB_INFO] = hubInfo
+		}
+		
 		//log('result.statusCode', result.statusCode)
 		//log('result.headers', headers)
 		
@@ -151,6 +165,14 @@ function forwardImpl(k, req, res) {
 			error('Error write back to client', e)
 			log(result)
 		}
+	}
+}
+
+function removeRbHeaders(headers) {
+	let keys = Object.keys(headers)
+	for (let k of keys) {
+		if (k.startsWith(constants.headers.PREFIX))
+			delete headers[k]
 	}
 }
 

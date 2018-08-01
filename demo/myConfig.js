@@ -56,5 +56,5 @@ module.exports = {
 	//It is NOT necessary if you are setting up a single cluster with multiple nodes 
 	//on only one VM.
 
-	//store: '',				
+	//store: '',
 }

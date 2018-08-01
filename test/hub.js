@@ -1,10 +1,11 @@
 'use strict'
 const hub = require('../hub')
 const config = require('./config.js')
+const url = require('url')
 
 const options = {
 	nodes: config.numHubNodes,
-	port: config.hubPort,	
+	port: config.hubPort,
 }
 if (config.store)
 	options.store = config.store

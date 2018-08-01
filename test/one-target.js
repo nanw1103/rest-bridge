@@ -29,7 +29,12 @@ app.use(function(err){
 	log('err~', String(err))
 })
 
-const port = config.targetPort
+let parsed = require('url').parse(config.target)
+
+let port = parsed.port
+if (!port)
+	port = parsed.protocol === 'http:' ? 80 : 443
+
 app.listen(port, err => {
 	if (err) {
 		error(err)

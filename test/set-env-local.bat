@@ -1,0 +1,1 @@
+copy /Y settings-local.js settings.js

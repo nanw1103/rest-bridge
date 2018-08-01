@@ -1,7 +1,7 @@
 #!/bin/bash
 COUNTER=0
 while [ 1 ]; do
-	node cluster-client.js numClients=5 hubHost=10.112.117.121 requestInterval=10 numConnectors=6
+	node cluster-client.js numClients=5 numConnectors=6
 	if [ $? -ne 0 ]; then
 		echo 'FAILED.'
 		#read -p 'Press ENTER to continue...'

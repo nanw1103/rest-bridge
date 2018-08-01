@@ -113,6 +113,9 @@ function startConnector(options) {
 				sendError('No matching route', req.seq)
 				return
 			}
+			
+			removeRbHeaders(req.headers)
+			
 			rawHttp.doHttpCall(target, req, callback)
 
 			function callback(err, respObj) {
@@ -208,6 +211,14 @@ function startConnector(options) {
 	}
 	
 	createClient()
+}
+
+function removeRbHeaders(headers) {
+	let keys = Object.keys(headers)
+	for (let k of keys) {
+		if (k.startsWith(constants.headers.PREFIX))
+			delete headers[k]
+	}
 }
 
 function close() {

@@ -2,10 +2,11 @@
 const rbconnector = require('../connector')
 const thisNode = require('../shared/node.js')
 const config = require('./config.js')
+const url = require('url')
 
 let port = config.hubPort + thisNode.index % config.numHubNodes
 
-let hubUrl = `ws://${config.hubHost}:${port}`
+let hubUrl = `http://${config.hubHost}:${port}`
 
 rbconnector.start({	
 	hub: hubUrl,
@@ -13,7 +14,7 @@ rbconnector.start({
 		key: 'demoKey-' + thisNode.index,
 		id: 'demoConnector-' + thisNode.index
 	},
-	target: `http://${config.targetHost}:${config.targetPort}`,
+	target: config.target,
 	
 	//additional pattern based routes can be specified as:
 	/*

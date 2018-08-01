@@ -10,6 +10,8 @@ module.exports = {
 		CHUNKS: HEADER_PREFIX + 'chunks',
 		KEY: HEADER_PREFIX + 'key',
 		FORWARDED: HEADER_PREFIX + 'forwarded',
-		NO_CONNECTOR: HEADER_PREFIX + 'no-connector'
+		NO_CONNECTOR: HEADER_PREFIX + 'no-connector',
+		REQ_HUB_INFO: HEADER_PREFIX + 'req-hub-info',
+		HUB_INFO: HEADER_PREFIX + 'hub-info',
 	}
 }
