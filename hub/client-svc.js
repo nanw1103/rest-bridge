@@ -91,7 +91,6 @@ function forwardImpl(k, req, res) {
 		if (!node || node.url === thisNode.url) {
 			registry.removeConnectionCache(k)
 			let headers = {}
-			headers[rbheaders.NO_CONNECTOR] = 1
 			res.writeHead(503, 'Connector not found', headers)
 			res.end()
 			stat.missingConnector++
@@ -110,7 +109,14 @@ function forwardImpl(k, req, res) {
 		}
 
 		//log('forwarding to', node.url, req.url)
-		rawHttp.doHttpCall(node.url, req, onResponseForwardToClient)
+		rawHttp.doHttpCall(node.url, req, (err, result) => {
+			if (err) {
+				//the peer seems not working properly. Clear cache
+				registry.removeConnectionCache(k)
+			}
+			
+			onResponseForwardToClient(err, result)
+		})
 	}).catch(e => {
 		log('Connector not found:', k, e)
 		res.writeHead(503, 'Find connector error')
