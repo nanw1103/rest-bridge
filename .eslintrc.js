@@ -25,6 +25,7 @@ module.exports = {
         ],
         "no-console": 0,
         "no-inner-declarations": 0,
-        "no-empty": 0
+        "no-empty": 0,
+        "no-constant-condition": 0
     }
 };

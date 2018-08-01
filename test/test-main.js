@@ -62,8 +62,6 @@ function test(name, options) {
 	console.log(`Test [${name}]`, JSON.stringify(options))
 	console.log('------------------------------------------------------------------------------------------')
 
-	let args = [options.hub, options.connector, options.client, options.largeBody, options.store]
-	
 	process.env.rbtest_numHubNodes = options.hub
 	process.env.rbtest_numConnectors = options.connector
 	process.env.rbtest_numClients = options.client

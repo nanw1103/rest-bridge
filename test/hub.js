@@ -1,7 +1,6 @@
 'use strict'
 const hub = require('../hub')
 const config = require('./config.js')
-const url = require('url')
 
 const options = {
 	nodes: config.numHubNodes,

@@ -2,7 +2,6 @@
 const rbconnector = require('../connector')
 const thisNode = require('../shared/node.js')
 const config = require('./config.js')
-const url = require('url')
 
 let port = config.hubPort + thisNode.index % config.numHubNodes
 

@@ -1,5 +1,4 @@
 'use strict'
-const url = require('url')
 const http = require('http')
 const {log, error} = require('../shared/log.js')(__filename)
 const config = require('./config.js')
@@ -16,9 +15,6 @@ function test1(n) {
 	
 	let connectorId = Math.floor(Math.random() * config.numConnectors)
 	let hubPort = config.hubPort + Math.floor(Math.random() * config.numHubNodes)
-	
-	let parsed = url.parse(config.hub)
-	let port = Number.parseInt(parsed.port) || (parsed.protocol === 'http:' ? 80 : 443)
 	
 	//*	
 	let options = {
