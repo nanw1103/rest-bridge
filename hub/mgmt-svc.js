@@ -9,7 +9,10 @@ clusterCollector.on('nodes', getThisNode)
 
 function getConnectors() {
 	return {
-		node: thisNode.url,
+		node: {
+			url: thisNode.url,
+			id: thisNode.id + '/' + thisNode.name
+		},
 		connectors: connectorSvc.list(),
 	}
 }

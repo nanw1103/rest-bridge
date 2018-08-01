@@ -10,6 +10,7 @@ module.exports = {
 	hub: 'ws://rb66.us-west-1.elasticbeanstalk.com:80',
 	target: 'http://localhost:10762',
 	numConnectors: 10,
+	connectorVerbose: false,
 	
 	//client config
 	numClients: 5,

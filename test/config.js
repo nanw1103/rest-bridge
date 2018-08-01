@@ -1,10 +1,13 @@
 const url = require('url')
-const config = require('./config-util.js')('./settings.js')
+const config = require('./config-util.js')('./_settings.js')
 
 function parseEndpoint(str) {
+	if (str[str.length -1] !== '/')
+		str += '/'
 	let parsed = url.parse(str)
+
 	let port = Number.parseInt(parsed.port)
-	
+
 	if (!port) {
 		let defaultPortMap = {
 			'http:': 80,

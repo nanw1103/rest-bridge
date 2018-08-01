@@ -1,1 +1,1 @@
-copy /Y settings-local.js settings.js
+copy /Y settings-local.js _settings.js

@@ -1,5 +1,5 @@
 const {log, error} = require('../shared/log.js')(__filename)
-const constants = require('../shared/constants.js')
+const rbheaders = require('../shared/constants.js').headers
 const thisNode = require('../shared/node.js')
 const rawHttp = require('../shared/raw-http.js')
 
@@ -42,12 +42,12 @@ function forwardToConnectorByHeaderKey(req, res) {
 	stat.incoming++
 	
 	let headers = req.headers
-	let k = headers[constants.headers.KEY]
+	let k = headers[rbheaders.KEY]
 	//k = 'demoKey'
 
 	if (!k) {
 		stat.missingConnectorKey++
-		res.writeHead(503, 'Missing ' + constants.headers.KEY)
+		res.writeHead(503, 'Missing ' + rbheaders.KEY)
 		res.end()		
 		return
 	}
@@ -58,8 +58,6 @@ function forwardToConnectorByHeaderKey(req, res) {
 function forwardImpl(k, req, res) {
 	let headers = req.headers
 
-	let includeHubInfo = headers[constants.headers.REQ_HUB_INFO]
-	
 	let connector = connectorSvc.findConnector(k)
 	if (connector) {
 		
@@ -67,13 +65,21 @@ function forwardImpl(k, req, res) {
 		
 		//redirect to connector	connected to this node			
 		let seq = ++seq_counter
-		headers[constants.headers.SEQ] = seq
+		headers[rbheaders.SEQ] = seq
 				
 		let text = rawHttp.reqToText(req)
 		connector.send(text, seq, onResponseForwardToClient)
 		return
 	}
 
+	if (headers[rbheaders.FORWARDED]) {
+		let headers = {}
+		headers[rbheaders.NO_CONNECTOR] = 1
+		res.writeHead(503, 'No further redirection', headers)
+		res.end()
+		stat.noFurtherRedirection++
+		return
+	}
 
 	//connector is not on this node. Find it in registry
 	registry.findConnection(k).then(connectionInfo => {
@@ -83,26 +89,20 @@ function forwardImpl(k, req, res) {
 		let node = connectionInfo ? connectionInfo.node : null
 
 		if (!node || node.url === thisNode.url) {
+			registry.removeConnectionCache(k)
 			let headers = {}
-			headers[constants.headers.NO_CONNECTOR] = 1
+			headers[rbheaders.NO_CONNECTOR] = 1
 			res.writeHead(503, 'Connector not found', headers)
 			res.end()
 			stat.missingConnector++
 			return
-		}
-		
-		if (headers[constants.headers.FORWARDED]) {
-			res.writeHead(503, 'No further redirection')
-			res.end()
-			stat.noFurtherRedirection++
-			return
-		}
+		}		
 		
 		//log('forwarding to:', node)
 
 		//Forward to another hub node which has the connector connection
 		stat.forwarded++
-		headers[constants.headers.FORWARDED] = 1	//prevent from further redirection
+		headers[rbheaders.FORWARDED] = 1	//prevent from further redirection
 
 		//hack for body parser. With text parser, without body it has an empty object
 		if (typeof req.body === 'object') {
@@ -131,19 +131,12 @@ function forwardImpl(k, req, res) {
 		}
 
 		let headers = result.headers
-		if (headers[constants.headers.NO_CONNECTOR]) {
+		if (headers[rbheaders.NO_CONNECTOR]) {
 			registry.removeConnectionCache(k)
-			delete headers[constants.headers.NO_CONNECTOR]
+			delete headers[rbheaders.NO_CONNECTOR]
 		}
 
-		if (includeHubInfo) {
-			let hubInfo = headers[constants.headers.HUB_INFO]
-			if (hubInfo)
-				hubInfo = thisNode.short().trim() + '/' + hubInfo
-			else
-				hubInfo = thisNode.short().trim()
-			headers[constants.headers.HUB_INFO] = hubInfo
-		}
+		appendHubInfoHeader(req, result)
 		
 		//log('result.statusCode', result.statusCode)
 		//log('result.headers', headers)
@@ -168,15 +161,33 @@ function forwardImpl(k, req, res) {
 	}
 }
 
+function appendHubInfoHeader(req, res) {
+	if (req.headers[rbheaders.REQ_HUB_INFO]) {
+		let hubInfo = res.headers[rbheaders.HUB_INFO]
+		if (hubInfo)
+			hubInfo = thisNode.short().trim() + '/' + hubInfo
+		else
+			hubInfo = thisNode.short().trim()
+		res.headers[rbheaders.HUB_INFO] = hubInfo
+	}
+}
+
+function addHubInfoHeader(req, res, next) {
+	if (req.headers[rbheaders.REQ_HUB_INFO])
+		res.setHeader(rbheaders.HUB_INFO, thisNode.short().trim())
+	next()
+}
+
 function removeRbHeaders(headers) {
 	let keys = Object.keys(headers)
 	for (let k of keys) {
-		if (k.startsWith(constants.headers.PREFIX))
+		if (k.startsWith(rbheaders.PREFIX))
 			delete headers[k]
 	}
 }
 
 function init(app) {
+	app.use(addHubInfoHeader)
 	app.use('/rest-bridge-forward/', forwardToConnectorByPathKey)
 	app.use(forwardToConnectorByHeaderKey)
 }

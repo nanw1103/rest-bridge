@@ -7,7 +7,7 @@ let store
 
 //The ConnectionCache is here to avoid unecessary IO to the store.
 //ConnectionCache is used per REST API call.
-const connectionCache = lru(2000, false, 0, 0)	//max, notify, ttl, expire
+const connectionCache = lru(2000, false, 60000, 0)	//max, notify, ttl, expire
 
 function configStore(config) {
 	store = storeFactory.create(config)

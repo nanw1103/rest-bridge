@@ -1,1 +1,1 @@
-copy /Y settings-aws.js settings.js
+copy /Y settings-aws.js _settings.js

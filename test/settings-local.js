@@ -10,6 +10,7 @@ module.exports = {
 	hub: 'ws://localhost:10763',
 	target: 'http://localhost:10762',
 	numConnectors: 3,
+	connectorVerbose: false,
 	
 	//client config
 	numClients: 5,

@@ -14,6 +14,7 @@ rbconnector.start({
 		id: 'demoConnector-' + thisNode.index
 	},
 	target: config.target,
+	verbose: config.connectorVerbose,
 	
 	//additional pattern based routes can be specified as:
 	/*

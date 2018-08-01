@@ -1,2 +1,2 @@
 #!/bin/bash
-node cluster-target.js
+node cluster-target.js numTargets=2

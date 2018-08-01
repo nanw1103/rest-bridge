@@ -1,3 +1,8 @@
+//Trick for test: enforce local setting
+const fs = require('fs')
+fs.createReadStream('./settings-local.js')
+	.pipe(fs.createWriteStream('./_settings.js'));
+
 (async function() {
 	
 	await test('basic', {

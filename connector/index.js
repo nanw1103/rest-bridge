@@ -60,7 +60,7 @@ function startConnector(options) {
 
 	log('Starting connector', JSON.stringify(options.info))
 	log('Connecting to hub', options.hub)
-
+	
 	//log('Starting connector to', options.hub)
 	closed = false
 	
@@ -105,8 +105,10 @@ function startConnector(options) {
 
 		function onMessage(text) {
 			let req = parseRequestMessage(text)
-			if (!req)
+			if (!req) {
+				setImmediate(restart)
 				return
+			}
 			
 			let target = matchRoute(req.url)
 			if (!target) {
@@ -116,6 +118,9 @@ function startConnector(options) {
 			
 			removeRbHeaders(req.headers)
 			
+			if (options.verbose)
+				log(`#${req.seq} --> ${target}${req.url}`)
+			
 			rawHttp.doHttpCall(target, req, callback)
 
 			function callback(err, respObj) {
@@ -123,6 +128,7 @@ function startConnector(options) {
 					sendError('Connector error: ' + err, req.seq)
 					return
 				}
+				
 				respObj.headers[constants.headers.SEQ_RESP] = req.seq
 				//if (respObj.chunks.length > 0)
 				//	respObj.headers[constants.headers.CHUNKS] = respObj.chunks.length
@@ -145,6 +151,8 @@ function startConnector(options) {
 				chunks.unshift(lenBuf)
 				totalLength += lenBuf.length
 								
+				if (options.verbose)
+					log(`#${req.seq} <-- ${totalLength}`)
 				
 				let wholeBuf = Buffer.concat(chunks, totalLength)
 				try {
@@ -169,6 +177,10 @@ function startConnector(options) {
 		let headers = {}
 		headers[constants.headers.SEQ_RESP] = seq
 		let text = rawHttp.response(503, msg, headers)
+		
+		if (options.verbose)
+			log(`#${seq} <-- Error: ${msg}`)
+		
 		safeWsCall('send', text)
 	}
 
