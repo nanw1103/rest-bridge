@@ -36,11 +36,8 @@ function test1(n) {
 		options.headers['content-length'] = bodyLength
 	}	
 
-	let reqStartTime
-	if (config.clientVerbose) {
-		reqStartTime = Date.now()
+	if (config.clientVerbose)
 		log(`#${n} C-${connectorId} -->`)
-	}
 		
 	//log('http://' + options.hostname + ':' + options.port + options.path, options)
 	let hubInfo
@@ -80,8 +77,7 @@ function test1(n) {
 		req.end()
 	}).then(() => {
 		if (config.clientVerbose) {
-			let cost = String(Date.now()-reqStartTime).padEnd(4)
-			log(`#${n} C-${connectorId} <-- [${cost}] ${hubPort}: ${hubInfo || ''}`)
+			log(`#${n} C-${connectorId} <-- ${hubPort}: ${hubInfo}`)
 		}
 	}).catch(e => {
 		error(`#${n} C-${connectorId} <-- ${hubPort}: ${hubInfo || ''} Error=${e}`)
