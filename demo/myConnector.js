@@ -1,6 +1,6 @@
 const rbconnector = require('../connector')
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 
 rbconnector.start({
 	
@@ -17,7 +17,7 @@ rbconnector.start({
 	//regular expression for request path as key, and target as value.
 	//Example:
 	/*
-	routes: {		
+	routes: {
 		'/demo': {
 			target: 'http://localhost:8081'			
 		},

@@ -100,7 +100,7 @@ function create(options) {
 			log(`Hub - connector server started: ${options.connectorHost || ''}:${options.connectorPort}`)
 		})
 	}
-	connectorSvc.init(connectorServer)
+	connectorSvc.init(connectorServer, options)
 }
 
 function getIPs() {
@@ -132,14 +132,8 @@ function close() {
 	connectorSvc.close()
 }
 
-const DEFAULTS = {
-	port: 80,
-	store: 'fs-store:/efs/rest-bridge-reg'
-}
-
 module.exports = {
 	create: create,
 	close: close,
-	registry: registry,
-	DEFAULTS: DEFAULTS
+	registry: registry
 }

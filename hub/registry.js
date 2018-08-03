@@ -41,11 +41,12 @@ function remove(k) {
 	return store.remove(k)
 }
 
-async function onConnect(info) {
+async function onConnect(info, allowUnregistered) {
 	
 	let k = info.key
 	
-	await store.get('reg/' + k)
+	if (!allowUnregistered)
+		await store.get('reg/' + k)
 
 	let item = 'connect/' + k
 	save(item, {

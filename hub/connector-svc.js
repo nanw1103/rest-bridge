@@ -10,6 +10,7 @@ const registry = require('./registry.js')
 //	Module data
 //----------------------
 const connectors = {}
+let _options
 
 const stat = {
 	//connections
@@ -153,49 +154,6 @@ class RemoteConnector {
 		
 		
 		workingResp.finish(null, res)
-		/*
-		let type = typeof message
-		if (type === 'string') {
-			let res = parseResMessage(message, this.info.id)
-			if (!res) {
-				stat.errParsingResponse++
-				this.stat.errParsingResponse++
-				return
-			}
-
-			if (workingResp) {
-				stat.errDupWorkingResp++
-				this.stat.errDupWorkingResp++
-				throw 'Invalid state: existing workingResp.'
-			}
-			workingResp = this.pendingResp[res.seq]
-			if (!workingResp) {
-				stat.errMissingWorkingResp++
-				this.stat.errMissingWorkingResp++
-				log(`[${this.info.id}]: pending resp not found: ${res.seq}.`)
-				return
-			}
-
-			stat.response_bytes += Buffer.byteLength(message)
-			this.stat.response_bytes += Buffer.byteLength(message)
-			
-			workingResp.res = res
-			if (!res.chunks)
-				workingResp.finish()
-
-		} else if (Buffer.isBuffer(message)) {
-			stat.response_bytes += message.length
-			this.stat.response_bytes += message.length
-			if (!workingResp)
-				return	//discard
-
-			workingResp.appendBody(message)
-		} else {
-			if (!workingResp)
-				return	//discard
-			workingResp.finish('Invalid msg type: ' + type)
-		}
-		*/
 	}
 	
 	send(text, seq, callback) {
@@ -286,7 +244,7 @@ function initConnection(ws, req) {
 	
 	clientInfo.ip = ip
 	
-	registry.onConnect(clientInfo).then(() => {
+	registry.onConnect(clientInfo, _options.allowUnregistered).then(() => {
 		log('Incoming connector', JSON.stringify(clientInfo))
 
 		//send server info
@@ -320,7 +278,9 @@ function initConnection(ws, req) {
 	}
 }
 
-function init(server/*, options*/) {
+function init(server, options) {
+	_options = options
+	
 	new WebSocket.Server({ 
 		server: server,
 		path: '/rest-bridge/connect',
