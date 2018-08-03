@@ -1,6 +1,6 @@
 'use strict'
 
-const {log} = require('../shared/log.js')(__filename)
+const { log, error } = require('../shared/log.js')(__filename)
 const delay = millis => new Promise(resolve => setTimeout(resolve, millis))
 
 const clusterTarget = require('./cluster-target.js')
@@ -12,20 +12,26 @@ function createHub() {
 	return fork(__dirname + '/hub.js')
 }
 
+function panic(e) {
+	error(e)
+	process.exit(12)
+}
+
 async function createTestMasterImpl() {
 	//targets
-	clusterTarget.start()
+	clusterTarget.start().catch(panic)
 
 	//hub
 	createHub()
 	await delay(2000)
 	
 	//connectors
-	clusterConnector.start()
+	clusterConnector.start().catch(panic)
 	await delay(2000)
 	
 	return await clusterClient.start()
 }
+
 createTestMasterImpl().then(() => {
 	log('SUCCESS')	
 	process.exit(0)

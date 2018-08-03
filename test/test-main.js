@@ -1,7 +1,7 @@
 //Trick for test: enforce local setting
 const fs = require('fs')
-fs.createReadStream('./settings-local.js')
-	.pipe(fs.createWriteStream('./_settings.js'));
+fs.createReadStream(__dirname + '/settings-local.js')
+	.pipe(fs.createWriteStream(__dirname + '/_settings.js'));
 
 (async function() {
 	
