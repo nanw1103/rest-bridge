@@ -14,25 +14,11 @@ Expose REST service in private network to public network, via connector (in priv
 ```javascript
 const hub = require('rest-bridge/hub')
 
-let options = {
-	
-	port: 80,	//Port to accept client requests. If there are multiple worker nodes in
-			//this cluster, this port automatically increases on each node according 
-			//to node index. This is required by internal forwarding. In real case, 
-			//you may want to have a load balancer on top of it so as to provide a 
-			//unique end point for connectors and clients.
-
-	//nodes: 1,	//How many worker nodes in this cluster. E.g. number of CPUs.
-	
-	//store: '',	//Datastore for sharing state between rest-bridge clusters. 
-			//Change it only if you are setting up multiple rest-bridge clusters 
-			//in multiple machines/containers, e.g. for high availability.
-			//Use shared file store like: 'fs-store:/your/path/on/nfs', or create your own store.
-			//It is NOT necessary if you are setting up a single cluster with multiple nodes 
-			//on only one VM.
+let options = {	
+	port: 80
 }
 
-hub.create(config).then(() => {	
+hub.create(options).then(() => {	
 	//demo purpose
 	hub.registry.register({
 		key: 'demoKey',
