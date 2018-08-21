@@ -188,8 +188,20 @@ Requests will be forwarded internally between the nodes on demand. So clients or
 ![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-HA.png?raw=true)
 
 # Security
+
+## Access Control 
 Method 1: In hub options, specify different network interface for management endpoint, client endpoint, and connector endpoint. Use firewall/security group/api gateway to control the access
 
 Method 2: Control context based access on api gateway/proxy/nginx, etc.
 
+## HTTPS/WSS
+Consider adding HTTPS/WSS on your load balancer or API gateway
 
+
+# The Storage
+### What is the storage for
+The storage is used for two purposes:
+1. Record the registered connector (pairing key), so only registered connector is able to connect to the service. You may or may not need this according to specific scenario. There is also option to disable the pairing key check so as to allow any incoming connector.
+2. Used for internal routing in multi-machine cluster environment. For each node, upon connector connection, a record consists of node info and connector info will be created in the store. Upon a call from client, the receiving node will first search itself for the connected connector. If the connection is not on the node itself, the storage is searched to identify the node holding the connection. Then the current node will forward the http request to the target node.
+
+If there are more than one machine/container, an external shared storage is a must. If there is only one machine (even it has a nodejs cluster), external shared storage is not needed and memory based (or cluster RPC based) internal storage can be used.
