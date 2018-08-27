@@ -8,12 +8,19 @@ clusterCollector.on('connectors', getConnectors)
 clusterCollector.on('nodes', getThisNode)
 
 function getConnectors() {
+	let map = connectorSvc.list()
+	let now = Date.now()
+	for (let k in map) {
+		let stat = map[k].stat
+		stat.lastHeartbeatSpan = now - stat.lastHeartbeat
+	}
+	
 	return {
 		node: {
 			url: thisNode.url,
 			id: thisNode.id + '/' + thisNode.name
 		},
-		connectors: connectorSvc.list(),
+		connectors: map
 	}
 }
 
@@ -70,6 +77,12 @@ const API_LIST = [{
 
 function init(app) {
 	
+	app.use('/rest-bridge/registry/_dev_clear', function (req, res) {
+		registry._dev_clear()
+			.then(info => _sendJSON(res, info))
+			.catch(err => _sendError(res, err))
+	})
+	
 	app.use('/rest-bridge/registry', function (req, res) {
 		
 		if (req.method === 'POST') {
@@ -94,7 +107,7 @@ function init(app) {
 			}
 		} else if (req.method === 'DELETE') {
 			let k = req.url.substring(1)
-			registry.delete(k)
+			registry.remove(k)
 				.then(() => _sendJSON(res, {}))
 				.catch(err => _sendError(res, err))
 		} else {

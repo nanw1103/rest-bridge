@@ -119,7 +119,7 @@ function forwardImpl(k, req, res) {
 		})
 	}).catch(e => {
 		log('Connector not found:', k, e)
-		res.writeHead(503, 'Find connector error')
+		res.writeHead(503, 'Find connector error: ' + String(e))
 		res.end()
 		stat.missingConnector++
 	})
@@ -192,8 +192,18 @@ function removeRbHeaders(headers) {
 	}
 }
 
-function init(app) {
+function init(app, options) {
+	
 	app.use(addHubInfoHeader)
+	
+	if (options && options.responseHeaders) {
+		app.use((req, res, next) => {
+			for (let k in options.responseHeaders)
+				res.setHeader(k, options.responseHeaders[k])
+			next()
+		})
+	}
+	
 	app.use('/rest-bridge-forward/', forwardToConnectorByPathKey)
 	app.use(forwardToConnectorByHeaderKey)
 }

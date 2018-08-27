@@ -77,4 +77,9 @@ module.exports = {
 		Whether allow unregistered connector to connect
 	*/
 	//allowUnregistered: false
+	
+	/*
+		Whether allow unregistered connector to connect
+	*/
+	//responseHeaders: {'Access-Control-Allow-Origin': '*'}
 }

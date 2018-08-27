@@ -192,7 +192,7 @@ Requests will be forwarded internally between the nodes on demand. So clients or
 ## Access Control 
 Method 1: In hub options, specify different network interface for management endpoint, client endpoint, and connector endpoint. Use firewall/security group/api gateway to control the access
 
-Method 2: Control context based access on api gateway/proxy/nginx, etc.
+Method 2: Control context based access on api gateway or load balancer, etc.
 
 ## HTTPS/WSS
 Consider adding HTTPS/WSS on your load balancer or API gateway

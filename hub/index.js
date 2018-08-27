@@ -74,7 +74,6 @@ function createCluster(options) {
 		}).on('exit', (code, signal) => {
 			log(`worker ${index} died. code=${code}. signal=${signal}`)
 			setTimeout(() => startWorker(index), 5000)
-			process.exit(1234)
 		})
 	}
 }

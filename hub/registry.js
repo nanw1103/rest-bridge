@@ -1,6 +1,6 @@
 const lru = require('tiny-lru')
 const thisNode = require('../shared/node.js')
-const {error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')(__filename)
 const storeFactory = require('./store/factory.js')
 
 let store
@@ -24,16 +24,16 @@ function init() {
 
 function register(info) {
 	
-	let k = info.key
-	if (k)
-		delete info.key
-	else
-		k = Math.random().toString(36).substring(2).padEnd(12, '0')
+	if (!info.key)
+		info.key = Math.random().toString(36).substring(2).padEnd(12, '0')
 	
 	info.regTime = Date.now()
-	let item = 'reg/' + k
+	
+	log('Registering', JSON.stringify(info))
+	
+	let item = 'reg/' + info.key
 	save(item, info)
-	return registry
+	return info
 }
 
 function remove(k) {

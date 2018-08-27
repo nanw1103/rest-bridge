@@ -60,7 +60,7 @@ function create(options) {
 		
 	//create client app
 	if (!options.managementPort || options.managementPort === options.port) {
-		clientSvc.init(managementApp)		
+		clientSvc.init(managementApp, options)		
 		clientServer = managementServer
 		log('Sharing client server & management server')
 	} else {
@@ -69,7 +69,7 @@ function create(options) {
 			type: '*/*',
 			limit: '1024kb'
 		}))
-		clientSvc.init(clientApp)
+		clientSvc.init(clientApp, options)
 		clientApp.use(onError)
 		clientServer = http.createServer(clientApp)
 		clientServer.listen(options.port, options.clientHost, err => {
