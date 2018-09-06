@@ -3,6 +3,8 @@ const WebSocket = require('ws')
 const {log} = require('../shared/log.js')(__filename)
 const rawHttp = require('../shared/raw-http.js')
 const constants = require('../shared/constants.js')
+const EventEmitter = require('events')
+
 
 function prepareHeaders(info) {
 	let ret = {}
@@ -56,10 +58,21 @@ function routeMatcherFactory(options) {
 let ws
 let closed
 
+const defaultOptions = {
+	handshakeTimeout: 20000,
+	//perMessageDeflate: false,
+	//protocolVersion:
+	//origin:
+	auth: 'pandora',
+	//headers: {}
+}
+
 function startConnector(options) {
 
 	log('Starting connector', JSON.stringify(options.info))
 	log('Connecting to hub', options.hub)
+
+	let events = new EventEmitter
 	
 	//log('Starting connector to', options.hub)
 	closed = false
@@ -67,15 +80,11 @@ function startConnector(options) {
 	let headers = prepareHeaders(options.info)
 	let matchRoute = routeMatcherFactory(options)
 	
+	let wsOptions = Object.assign({}, defaultOptions, options)
+	wsOptions.headers = headers
+	
 	function createClient() {
-		ws = new WebSocket(options.hub + '/rest-bridge/connect', 'binary', {
-			handshakeTimeout: 20000,
-			//perMessageDeflate: false,
-			//protocolVersion:
-			//origin:
-			auth: 'pandora',
-			headers: headers
-		}).on('open', () => {
+		ws = new WebSocket(options.hub + '/rest-bridge/connect', 'binary', wsOptions).on('open', () => {
 			//log('ws open')
 			restartDelay = initialDelay
 			startHeartbeat()
@@ -101,6 +110,7 @@ function startConnector(options) {
 		function onFirstMessage(text) {
 			ws.on('message', onMessage)
 			log('Hub connected', text)
+			events.emit('connected')
 		}
 
 		function onMessage(text) {
@@ -209,6 +219,8 @@ function startConnector(options) {
 		
 		clearInterval(heartbeatTimer)
 		
+		events.emit('disconnected')
+		
 		if (closed) {
 			log('Closed.')
 			return
@@ -223,6 +235,8 @@ function startConnector(options) {
 	}
 	
 	createClient()
+	
+	return events
 }
 
 function removeRbHeaders(headers) {

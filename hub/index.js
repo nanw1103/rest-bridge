@@ -80,7 +80,7 @@ function createCluster(options) {
 
 function createSingleNode(options) {
 	const node = require('./node-impl.js')
-	node.create(options)
+	return node.create(options)
 }
 
 module.exports = {

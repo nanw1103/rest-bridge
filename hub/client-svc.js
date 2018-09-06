@@ -2,9 +2,9 @@ const {log, error} = require('../shared/log.js')(__filename)
 const rbheaders = require('../shared/constants.js').headers
 const thisNode = require('../shared/node.js')
 const rawHttp = require('../shared/raw-http.js')
-
 const registry = require('./registry.js')
 const connectorSvc = require('./connector-svc.js')
+const makeContext = require('./context-util.js').makeContext
 
 let seq_counter = 0
 
@@ -204,7 +204,8 @@ function init(app, options) {
 		})
 	}
 	
-	app.use('/rest-bridge-forward/', forwardToConnectorByPathKey)
+	let ctx = makeContext(options.baseContext, '/rest-bridge-forward/')
+	app.use(ctx, forwardToConnectorByPathKey)
 	app.use(forwardToConnectorByHeaderKey)
 }
 

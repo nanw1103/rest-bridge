@@ -1,7 +1,7 @@
 const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
 const connectorSvc = require('./connector-svc.js')
-
+const makeContext = require('./context-util.js').makeContext
 const clusterCollector = require('cluster-collector')
 
 clusterCollector.on('connectors', getConnectors)
@@ -75,15 +75,17 @@ const API_LIST = [{
 	description: 'Get single node info'
 }]
 
-function init(app) {
+function init(app, options) {
 	
-	app.use('/rest-bridge/registry/_dev_clear', function (req, res) {
+	let ctx = makeContext(options.baseContext, '/rest-bridge/registry/_dev_clear')
+	app.use(ctx, function (req, res) {
 		registry._dev_clear()
 			.then(info => _sendJSON(res, info))
 			.catch(err => _sendError(res, err))
 	})
 	
-	app.use('/rest-bridge/registry', function (req, res) {
+	ctx = makeContext(options.baseContext, '/rest-bridge/registry')
+	app.use(ctx, function (req, res) {
 		
 		if (req.method === 'POST') {
 			let data
@@ -116,23 +118,27 @@ function init(app) {
 		}
 	})
 	
-	app.use('/rest-bridge/nodes', function (req, res) {
+	ctx = makeContext(options.baseContext, '/rest-bridge/nodes')
+	app.use(ctx, function (req, res) {
 		clusterCollector.collect('nodes')
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
-	app.use('/rest-bridge/connectors', function (req, res) {
+	ctx = makeContext(options.baseContext, '/rest-bridge/connectors')
+	app.use(ctx, function (req, res) {
 		clusterCollector.collect('connectors')
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
-	app.use('/rest-bridge/node', function (req, res) {
+	ctx = makeContext(options.baseContext, '/rest-bridge/node')
+	app.use(ctx, function (req, res) {
 		_sendJSON(res, thisNode)
 	})
 	
-	app.use('/rest-bridge', function (req, res) {
+	ctx = makeContext(options.baseContext, '/rest-bridge')
+	app.use(ctx, function (req, res) {
 		//console.log(req.url)
 		if (req.url !== '/') {
 			res.writeHead(404)

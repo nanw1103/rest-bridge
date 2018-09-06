@@ -31,6 +31,8 @@ function create(options) {
 	let port = Number.parseInt(options.port)
 	thisNode.name = port
 
+	let _reusedServer = options._server
+	delete options._server
 	log('Creating node', JSON.stringify(options))
 
 	const ips = getIPs()
@@ -45,18 +47,24 @@ function create(options) {
 		type: '*/*',
 		limit: '1024kb'
 	}))
-	statSvc.init(managementApp)
-	mgmtSvc.init(managementApp)
-	managementServer = http.createServer(managementApp)
+	statSvc.init(managementApp, options)
+	mgmtSvc.init(managementApp, options)
+		
 	if (!options.managementPort)
 		options.managementPort = options.port
-	managementServer.listen(options.managementPort, options.managementHost, err => {
-		if (err) {
-			error('Error starting management server', err)
-			process.exit(11)
-		}				
-		log(`Hub - management server started: ${options.managementHost || ''}:${options.managementPort}`)
-	})
+	
+	if (_reusedServer) {
+		managementServer = _reusedServer
+	} else {
+		managementServer = http.createServer(managementApp)
+		managementServer.listen(options.managementPort, options.managementHost, err => {
+			if (err) {
+				error('Error starting management server', err)
+				process.exit(11)
+			}				
+			log(`Hub - management server started: ${options.managementHost || ''}:${options.managementPort}`)
+		})
+	}
 		
 	//create client app
 	if (!options.managementPort || options.managementPort === options.port) {
@@ -101,6 +109,15 @@ function create(options) {
 		})
 	}
 	connectorSvc.init(connectorServer, options)
+	
+	return {
+		_close: close,
+		_managementApp: managementApp,
+		_managementServer: managementServer,
+		_clientServer: clientServer,
+		_connectorServer: connectorServer,
+		_connectorSvc: connectorSvc
+	}
 }
 
 function getIPs() {

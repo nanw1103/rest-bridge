@@ -38,7 +38,11 @@ function register(info) {
 
 function remove(k) {
 	removeConnectionCache(k)
-	return store.remove(k)
+	return Promise.all([
+		store.remove('reg/' + k),
+		store.remove('connect/' + k),
+		store.remove('disconnect/' + k)
+	])
 }
 
 async function onConnect(info, allowUnregistered) {
@@ -125,6 +129,7 @@ const registry = {
 	get: get,
 	register: register,
 	remove: remove,
+	
 	onConnect: onConnect,
 	onDisconnect: onDisconnect,
 	findConnection: findConnection,

@@ -5,6 +5,7 @@ const mgmtSvc = require('./mgmt-svc.js')
 const connectorSvc = require('./connector-svc.js')
 const clientSvc = require('./client-svc.js')
 const registry = require('./registry.js')
+const makeContext = require('./context-util.js').makeContext
 
 clusterCollector.on('stat', getNodeStat)
 clusterCollector.on('env', getNodeEnv)
@@ -26,16 +27,18 @@ function getNodeEnv() {
 	return process.env
 }
 
-function init(app) {
+function init(app, options) {
 	
-	app.use('/rest-bridge/stat', function (req, res) {
+	let ctx = makeContext(options.baseContext, '/rest-bridge/stat')
+	app.use(ctx, function (req, res) {
 		
 		clusterCollector.collect('stat')
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
-	app.use('/rest-bridge/env', function (req, res) {		
+	ctx = makeContext(options.baseContext, '/rest-bridge/env')
+	app.use(ctx, function (req, res) {		
 		clusterCollector.collect('env')
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))

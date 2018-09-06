@@ -17,6 +17,12 @@ module.exports = {
 		Host address for clients. By default bind to all interfaces
 	*/
 	//host: '0.0.0.0',	
+		
+	/*
+		Base HTTP context path for APIs
+	*/
+	//baseContext: '/'
+	
 	
 	//-------------------------------------------------------------------------------------
 	//	Connector interface, which accepts connections from connectors.
@@ -77,6 +83,12 @@ module.exports = {
 		Whether allow unregistered connector to connect
 	*/
 	//allowUnregistered: false
+	
+	/*
+		Custom function to validate client upon connection.
+		Only valid in single node mode.
+	*/
+	//verifyClient: async (clientInfo, reqInfo) => true
 	
 	/*
 		Whether allow unregistered connector to connect

@@ -5,12 +5,12 @@ const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')
 const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
+const makeContext = require('./context-util.js').makeContext
 
 //----------------------
 //	Module data
 //----------------------
 const connectors = {}
-let _options
 
 const stat = {
 	//connections
@@ -234,70 +234,87 @@ function monitorLiveness() {
 }
 monitorLiveness()
 
-function initConnection(ws, req) {
-
-	stat.history_connected++
+function initConnection(ws, req, options) {
 	
-	const ip = req.connection.remoteAddress
+	let clientInfo = req._clientInfo
 	
-	let clientInfo = retrieveClientInfo()
-	
-	clientInfo.ip = ip
-	
-	registry.onConnect(clientInfo, _options.allowUnregistered).then(() => {
-		log('Incoming connector', JSON.stringify(clientInfo))
+	log('Incoming connector', JSON.stringify(clientInfo))
 
-		//send server info
-		let serverInfo = JSON.stringify(thisNode.format())
-		ws.send(serverInfo, err => {
-			if (err) {
-				log('Error sending hub info to connector', err.toString())
-				ws.terminate()
-			} else {
-				log('Connector accepted:', clientInfo.id)
-				new RemoteConnector(ws, clientInfo)
-			}
-		})
-
-	}).catch(e => {
-		stat.rejected++
-		log('Rejected', e, clientInfo)
-		//https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-		ws.close(constants.AUTH_FAILURE)
-	})
-
-	function retrieveClientInfo() {
-		let ret = {}
-		let prefix = constants.headers.PREFIX
-		for (let k in req.headers) {
-			if (k.startsWith(prefix)) {
-				ret[k.substring(prefix.length)] = req.headers[k]
-			}
+	//send server info
+	let serverInfo = JSON.stringify(thisNode.format())
+	ws.send(serverInfo, err => {
+		if (err) {
+			log('Error sending hub info to connector', err.toString())
+			ws.terminate()
+		} else {
+			log('Connector accepted:', clientInfo.id)
+			new RemoteConnector(ws, clientInfo)
 		}
-		return ret
+	})
+}
+
+function retrieveClientInfo(req) {
+	let ret = {}
+	let prefix = constants.headers.PREFIX
+	for (let k in req.headers) {
+		if (k.startsWith(prefix)) {
+			ret[k.substring(prefix.length)] = req.headers[k]
+		}
 	}
+	return ret
 }
 
 function init(server, options) {
-	_options = options
 	
+	function verifyClient(info, cb) {
+		stat.history_connected++		
+		let clientInfo = retrieveClientInfo(info.req)
+		clientInfo.ip = info.req.connection.remoteAddress		
+		
+		info.req._clientInfo = clientInfo
+		
+		let verify
+		if (options.verifyClient) {
+			let custom = options.verifyClient(clientInfo, info)
+			if (custom instanceof Promise)
+				verify = custom
+			else
+				verify = custom ? Promise.resolve() : Promise.reject('Failing custom auth')
+		} else
+			verify = Promise.resolve()
+		
+		verify.then(() => registry.onConnect(clientInfo, options.allowUnregistered))
+			.then(() => cb(true))
+			.catch(e => {
+				stat.rejected++
+				log('Client rejected: ' + e, clientInfo)
+				//https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+				//ws.close(constants.AUTH_FAILURE)
+				cb(false, 401, 'Auth failed: ' + e)
+			})
+	}
+	/*
+	verifyClient = info => {
+		//origin {String} The value in the Origin header indicated by the client.
+		//secure {Boolean} true if req.connection.authorized or req.connection.encrypted is set.
+		//log('verifyClient', info.req.headers)
+		return true
+	}
+	*/
+	
+	let ctx = makeContext(options.baseContext, '/rest-bridge/connect')
 	new WebSocket.Server({ 
 		server: server,
-		path: '/rest-bridge/connect',
-		verifyClient: (/*info*/) => {
-			//origin {String} The value in the Origin header indicated by the client.
-			//secure {Boolean} true if req.connection.authorized or req.connection.encrypted is set.
-			//log('verifyClient', info.req.headers)
-			return true
-		}
-	}).on('connection', initConnection)
-		.on('error', e => {
-			log('on error:', e)
-		//	}).on('headers', (/*headers, request*/) => {
-		//		log('on headers')
-		//	}).on('listening', () => {
-		//		log('on listening')
-		})
+		path: ctx,
+		verifyClient: verifyClient
+	}).on('connection', (ws, req) => initConnection(ws, req, options))
+	.on('error', e => {
+		log('on error:', e)
+	//}).on('headers', (/*headers, request*/) => {
+	//	log('on headers')
+	//}).on('listening', () => {
+	//	log('on listening')
+	})
 }
 
 function list() {
