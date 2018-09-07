@@ -204,9 +204,11 @@ function init(app, options) {
 		})
 	}
 	
-	let ctx = makeContext(options.baseContext, '/rest-bridge-forward/')
+	let ctx = makeContext(options.baseContext, '/rest-bridge-forward')
 	app.use(ctx, forwardToConnectorByPathKey)
-	app.use(forwardToConnectorByHeaderKey)
+	
+	ctx = makeContext(options.baseContext, '')
+	app.use(ctx, forwardToConnectorByHeaderKey)
 }
 
 module.exports = {
