@@ -6,7 +6,7 @@ const registry = require('./registry.js')
 const connectorSvc = require('./connector-svc.js')
 const makeContext = require('./context-util.js').makeContext
 
-let seq_counter = 0
+
 
 const stat = {
 	incoming: 0,
@@ -30,7 +30,7 @@ function forwardToConnectorByPathKey(req, res) {
 	}
 	let k = url.substring(1, end)
 	req.url = url.substring(end)
-
+	req.headers[rbheaders.KEY] = k
 	//log('forwardToConnectorByPathKey result', req.url)
 
 	return forwardImpl(k, req, res)
@@ -56,22 +56,14 @@ function forwardToConnectorByHeaderKey(req, res) {
 }
 
 function forwardImpl(k, req, res) {
-	let headers = req.headers
-
 	let connector = connectorSvc.findConnector(k)
 	if (connector) {
-		
-		removeRbHeaders(headers)
-		
 		//redirect to connector	connected to this node			
-		let seq = ++seq_counter
-		headers[rbheaders.SEQ] = seq
-				
-		let text = rawHttp.reqToText(req)
-		connector.send(text, seq, onResponseForwardToClient)
+		connector.send(req, onResponseForwardToClient)
 		return
 	}
 
+	let headers = req.headers
 	if (headers[rbheaders.FORWARDED]) {
 		let headers = {}
 		headers[rbheaders.NO_CONNECTOR] = 1
@@ -182,14 +174,6 @@ function addHubInfoHeader(req, res, next) {
 	if (req.headers[rbheaders.REQ_HUB_INFO])
 		res.setHeader(rbheaders.HUB_INFO, thisNode.short().trim())
 	next()
-}
-
-function removeRbHeaders(headers) {
-	let keys = Object.keys(headers)
-	for (let k of keys) {
-		if (k.startsWith(rbheaders.PREFIX))
-			delete headers[k]
-	}
 }
 
 function init(app, options) {

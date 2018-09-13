@@ -1,3 +1,4 @@
+const constants = require('../shared/constants.js')
 const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
 const connectorSvc = require('./connector-svc.js')
@@ -128,7 +129,26 @@ function init(app, options) {
 	ctx = makeContext(options.baseContext, '/rest-bridge/connectors')
 	app.use(ctx, function (req, res) {
 		clusterCollector.collect('connectors')
-			.then(ret => _sendJSON(res, ret))
+			.then(ret => {
+				if (req.url === '/') {
+					_sendJSON(res, ret)
+					return
+				}
+				let k = req.url.substring(1)
+				let c
+				for (let node of ret) {
+					c = node.connectors[k]
+					if (c) {
+						c.node = node.node
+						break
+					}
+				}
+				if (!c)
+					c = {}
+				let headers = {}
+				headers[constants.headers.HUB_INFO] = thisNode.short().trim()
+				_sendJSON(res, c, headers)
+			})
 			.catch(err => _sendError(res, err))
 	})
 	
@@ -160,12 +180,13 @@ function _sendError(res, err) {
 	_sendJSON(res, {error: err.toString()})
 }
 
-function _sendJSON(res, obj) {
+function _sendJSON(res, obj, additionalHeaders) {
 	let text = JSON.stringify(obj, null, 4)
-	res.writeHead(200, {
+	let headers = Object.assign({}, additionalHeaders, {
 		'content-type': 'application/json',
 		'content-length': Buffer.byteLength(text),
 	})
+	res.writeHead(200, headers)
 	res.end(text)
 }
 

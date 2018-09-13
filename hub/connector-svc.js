@@ -4,6 +4,7 @@ const {log} = require('../shared/log.js')(__filename)
 const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')
 const thisNode = require('../shared/node.js')
+const rbheaders = require('../shared/constants.js').headers
 const registry = require('./registry.js')
 const makeContext = require('./context-util.js').makeContext
 
@@ -54,6 +55,14 @@ function parseResMessage(text, id) {
 	return res
 }
 
+function removeRbHeaders(headers) {
+	let keys = Object.keys(headers)
+	for (let k of keys) {
+		if (k.startsWith(rbheaders.PREFIX))
+			delete headers[k]
+	}
+}
+
 class RemoteConnector {
 	
 	constructor(ws, info) {
@@ -82,7 +91,9 @@ class RemoteConnector {
 			errSendError: 0,
 			
 			//time
-			lastHeartbeat: Date.now()
+			lastHeartbeat: Date.now(),
+			
+			seq_counter: 0
 		}
 		
 		let id = info.id
@@ -151,15 +162,20 @@ class RemoteConnector {
 			log(`[${this.info.id}]: pending resp not found: ${res.seq}.`)
 			return
 		}
-		
-		
+				
 		workingResp.finish(null, res)
 	}
 	
-	send(text, seq, callback) {
-		
+	send(req, callback) {		
 		stat.outgoing++
 		this.stat.outgoing++
+		
+		let seq = ++this.stat.seq_counter
+				
+		removeRbHeaders(req.headers)
+		req.headers[rbheaders.SEQ] = seq
+				
+		let text = rawHttp.reqToText(req)		
 		
 		let bytes = Buffer.byteLength(text)
 		stat.outgoing_bytes += bytes

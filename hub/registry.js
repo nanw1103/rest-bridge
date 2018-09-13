@@ -2,6 +2,7 @@ const lru = require('tiny-lru')
 const thisNode = require('../shared/node.js')
 const {log, error} = require('../shared/log.js')(__filename)
 const storeFactory = require('./store/factory.js')
+const useNodeQuery = require('./use-node-query.js')
 
 let store
 
@@ -133,7 +134,11 @@ const registry = {
 	onConnect: onConnect,
 	onDisconnect: onDisconnect,
 	findConnection: findConnection,
-	removeConnectionCache: removeConnectionCache
+	removeConnectionCache: removeConnectionCache,
+	
+	useNodeQuery: useNodeQuery
 }
+
+Object.defineProperty(registry, '_connectionCache', { value: connectionCache })
 
 module.exports = registry

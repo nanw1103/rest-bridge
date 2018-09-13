@@ -1,35 +1,36 @@
+const lru = require('tiny-lru')
+
 class MemStore {
 	
-	constructor() {
-		this._map = {}
+	constructor(size) {
+		size = size || 10000
+		this._map = lru(size, false, 0, 0)
 	}
 	
-	set(k, obj) {
-		this._map[k] = obj
-		return Promise.resolve()
+	async set(k, obj) {
+		this._map.set(k, obj)
 	}
 	
-	get(k) {
-		if (k in this._map)
-			return Promise.resolve(this._map[k])
-		return Promise.reject()
+	async get(k) {
+		if (!this._map.has(k))
+			return Promise.reject()
+		return this._map.get(k)
 	}
 	
-	remove(k) {
-		delete this._map[k]
-		return Promise.resolve()
+	async remove(k) {
+		this._map.remove(k)
 	}
 	
-	list(path) {
+	async list(path) {
 		if (path[path.length - 1] !== '/')
 			path += '/'
 		let keys = Object.keys(this._map)
 		let items = keys.filter(v => v.startsWith(path))
-		return Promise.resolve(items)
+		return items
 	}
 	
-	has(k) {
-		return k in this._map ? Promise.resolve() : Promise.reject()
+	async has(k) {
+		return this._map.has(k)
 	}
 	
 	async init() {
