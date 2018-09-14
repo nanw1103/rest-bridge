@@ -210,7 +210,7 @@ function startConnector(options) {
 	}
 
 	const initialDelay = 1000
-	const maxDelay = 120 * 1000
+	const maxDelay = 300 * 1000
 	let restartDelay = initialDelay	
 	let restartTimer
 	function restart() {

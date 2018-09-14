@@ -86,7 +86,7 @@ function error() {
 function formatLogContent(args, prefix) {
 	maskPassword(args)
 	let logContent = util.format.apply(null, args)
-	let timeString = new Date().toLocaleString()
+	let timeString = new Date().toISOString()
 	logContent = timeString + prefix + thisNode.short() + ' ' + logContent
 	return logContent + '\n'
 }

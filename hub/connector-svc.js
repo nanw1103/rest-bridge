@@ -75,6 +75,8 @@ class RemoteConnector {
 			}
 		})
 		
+		let now = Date.now()
+
 		this.info = info
 		this.stat = {
 			outgoing: 0,
@@ -91,9 +93,8 @@ class RemoteConnector {
 			errSendError: 0,
 			
 			//time
-			lastHeartbeat: Date.now(),
-			
-			seq_counter: 0
+			lastHeartbeat: now,
+			connectedAt: now
 		}
 		
 		let id = info.id
@@ -124,8 +125,17 @@ class RemoteConnector {
 	}
 	
 	terminate() {
-		this.ws.terminate()
 		delete connectors[this.info.key]
+		this.ws.terminate()
+	}
+	
+	close(code, data) {
+		delete connectors[this.info.key]
+		try {
+			this.ws.close(code, data)
+		} catch (e) {
+			this.ws.terminate()
+		}		
 	}
 	
 	handleResponseMessage(message) {
@@ -170,7 +180,7 @@ class RemoteConnector {
 		stat.outgoing++
 		this.stat.outgoing++
 		
-		let seq = ++this.stat.seq_counter
+		let seq = this.stat.outgoing
 				
 		removeRbHeaders(req.headers)
 		req.headers[rbheaders.SEQ] = seq
@@ -228,7 +238,6 @@ class RemoteConnector {
 
 function findConnector(k) {
 	return connectors[k]
-	//return connectors[Object.keys(connectors)[0]]
 }
 
 function monitorLiveness() {
@@ -252,21 +261,39 @@ monitorLiveness()
 
 function initConnection(ws, req, options) {
 	
-	let clientInfo = req._clientInfo
-	
+	stat.history_connected++		
+	let clientInfo = retrieveClientInfo(req)
+	clientInfo.ip = req.connection.remoteAddress	
+
 	log('Incoming connector', JSON.stringify(clientInfo))
 
-	//send server info
-	let serverInfo = JSON.stringify(thisNode.format())
-	ws.send(serverInfo, err => {
-		if (err) {
-			log('Error sending hub info to connector', err.toString())
-			ws.terminate()
-		} else {
-			log('Connector accepted:', clientInfo.id)
-			new RemoteConnector(ws, clientInfo)
-		}
+	verifyClient(clientInfo, options).then(() => {
+		//send server info
+		let serverInfo = JSON.stringify(thisNode.format())
+		ws.send(serverInfo, err => {
+			if (err) {
+				log('Error sending hub info to connector', err.toString())
+				ws.terminate()
+			} else {
+				log('Connector accepted:', clientInfo.id)
+				new RemoteConnector(ws, clientInfo)
+			}
+		})
+	}).catch(e => {
+		stat.rejected++
+		log('Client rejected: ' + e, clientInfo)
+		//https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+		ws.close(constants.AUTH_FAILURE)
 	})
+}
+
+async function verifyClient(clientInfo, options) {
+	if (options.verifyClient) {
+		let allow = await options.verifyClient(clientInfo)
+		if (!allow)
+			return Promise.reject('Failing custom verifyClient')
+	}
+	await registry.onConnect(clientInfo, options.allowUnregistered)
 }
 
 function retrieveClientInfo(req) {
@@ -282,41 +309,14 @@ function retrieveClientInfo(req) {
 
 function init(server, options) {
 	
-	function verifyClient(info, cb) {
-		stat.history_connected++		
-		let clientInfo = retrieveClientInfo(info.req)
-		clientInfo.ip = info.req.connection.remoteAddress		
-		
-		info.req._clientInfo = clientInfo
-		
-		let verify
-		if (options.verifyClient) {
-			let custom = options.verifyClient(clientInfo, info)
-			if (custom instanceof Promise)
-				verify = custom
-			else
-				verify = custom ? Promise.resolve() : Promise.reject('Failing custom auth')
-		} else
-			verify = Promise.resolve()
-		
-		verify.then(() => registry.onConnect(clientInfo, options.allowUnregistered))
-			.then(() => cb(true))
-			.catch(e => {
-				stat.rejected++
-				log('Client rejected: ' + e, clientInfo)
-				//https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-				//ws.close(constants.AUTH_FAILURE)
-				cb(false, 401, 'Auth failed: ' + e)
-			})
-	}
-	/*
-	verifyClient = info => {
+	//*
+	let verifyClient = () => {
 		//origin {String} The value in the Origin header indicated by the client.
 		//secure {Boolean} true if req.connection.authorized or req.connection.encrypted is set.
 		//log('verifyClient', info.req.headers)
 		return true
 	}
-	*/
+	//*/
 	
 	let ctx = makeContext(options.baseContext, '/rest-bridge/connect')
 	new WebSocket.Server({ 
