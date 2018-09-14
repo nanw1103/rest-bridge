@@ -130,6 +130,8 @@ class RemoteConnector {
 	}
 	
 	close(code, data) {
+		if (code === 'quit')
+			code = constants.WS_SERVER_CMD_QUIT
 		delete connectors[this.info.key]
 		try {
 			this.ws.close(code, data)
@@ -283,7 +285,7 @@ function initConnection(ws, req, options) {
 		stat.rejected++
 		log('Client rejected: ' + e, clientInfo)
 		//https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-		ws.close(constants.AUTH_FAILURE)
+		ws.close(constants.WS_AUTH_FAILURE)
 	})
 }
 

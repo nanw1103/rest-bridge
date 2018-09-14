@@ -1,7 +1,8 @@
 const HEADER_PREFIX = 'x-rest-bridge-'
 
 module.exports = {
-	AUTH_FAILURE: 4001,
+	WS_AUTH_FAILURE: 4001,
+	WS_SERVER_CMD_QUIT: 4002,
 	HEARTBEAT_INTERVAL: 60 * 1000,
 	headers: {
 		PREFIX: HEADER_PREFIX,

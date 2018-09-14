@@ -90,8 +90,15 @@ function startConnector(options) {
 			startHeartbeat()
 		}).on('close', (code, reason) => {
 			log('ws close', code, reason)
-			if (code === constants.AUTH_FAILURE)
+			if (code === constants.WS_SERVER_CMD_QUIT) {
+				log('Receives WS_SERVER_CMD_QUIT. Exit.')
+				process.exit(constants.WS_SERVER_CMD_QUIT)
+				return
+			}
+			
+			if (code === constants.WS_AUTH_FAILURE)
 				restartDelay = maxDelay
+			
 			restart()
 		}).on('error', e => {
 			log('ws error:', e.toString())
