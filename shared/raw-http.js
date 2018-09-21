@@ -220,13 +220,16 @@ function resToHead(res) {
 }
 
 function reqToText(req) {
-	let text = req.method + ' ' + req.url + ' HTTP/' + req.httpVersion + '\n'
+	let text = (req.method || 'GET') + ' ' + req.url + ' HTTP/' + (req.httpVersion || '1.1') + '\n'
 	
 	for (let k in req.headers)
 		text += k + ':' + req.headers[k] + '\n'
 	text += '\n'
-	if (typeof req.body === 'string') {
+	let type = typeof req.body
+	if (type === 'string') {
 		text += req.body
+	} else if (type === 'object') {
+		text += JSON.stringify(req.body)
 	}
 	return text
 }

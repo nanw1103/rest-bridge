@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const thisNode = require('./node.js')
 
-let logFile = process.env['launchpad_log']
+let logFile = process.env['rest_bridge_log']
 let usingFile = logFile && logFile.length > 0
 
 if (!usingFile) {
