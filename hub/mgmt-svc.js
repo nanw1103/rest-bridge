@@ -87,7 +87,6 @@ function init(app, options) {
 	
 	ctx = makeContext(options.baseContext, '/rest-bridge/registry')
 	app.use(ctx, function (req, res) {
-		
 		if (req.method === 'POST') {
 			let data
 			if (req.body !== '')
@@ -121,14 +120,14 @@ function init(app, options) {
 	
 	ctx = makeContext(options.baseContext, '/rest-bridge/nodes')
 	app.use(ctx, function (req, res) {
-		clusterCollector.collect('nodes')
+		clusterCollector.collect('nodes', {excludeMaster: true})
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
 	ctx = makeContext(options.baseContext, '/rest-bridge/connectors')
 	app.use(ctx, function (req, res) {
-		clusterCollector.collect('connectors')
+		clusterCollector.collect('connectors', {excludeMaster: true})
 			.then(ret => {
 				if (req.url === '/') {
 					_sendJSON(res, ret)

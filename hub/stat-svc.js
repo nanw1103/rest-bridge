@@ -32,14 +32,14 @@ function init(app, options) {
 	let ctx = makeContext(options.baseContext, '/rest-bridge/stat')
 	app.use(ctx, function (req, res) {
 		
-		clusterCollector.collect('stat')
+		clusterCollector.collect('stat', {excludeMaster: true})
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
 	ctx = makeContext(options.baseContext, '/rest-bridge/env')
 	app.use(ctx, function (req, res) {		
-		clusterCollector.collect('env')
+		clusterCollector.collect('env', {excludeMaster: true})
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
