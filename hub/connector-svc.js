@@ -249,7 +249,7 @@ function monitorLiveness() {
 		for (let k of keys) {
 			let c = connectors[k]
 			let inactive = now - c.stat.lastHeartbeat
-			if (inactive > constants.HEARTBEAT_INTERVAL * 2) {
+			if (inactive > constants.HEARTBEAT_INTERVAL * 2 + 10000) {
 				log('Close timeout', c.info.id)
 				c.terminate()
 				stat.heartbeatTimeout++

@@ -4,6 +4,7 @@ const {log, error} = require('../shared/log.js')(__filename)
 const config = require('./config.js')
 const rbheaders = require('../shared/constants.js').headers
 const delay = millis => millis > 0 ? new Promise(resolve => setTimeout(resolve, millis)) : 0
+const rbcall = require('../shared/rbcall.js')
 
 let processed = 0
 function test1(n) {
@@ -11,6 +12,9 @@ function test1(n) {
 		let percent = (processed * 100 / config.numRequests) | 0
 		log(`Processed ${processed}, ${percent}%...`)
 	}
+	
+	if (n === 0)
+		return test404(n)
 	
 	let connectorId = Math.floor(Math.random() * config.numConnectors)
 	let hubPort = config.hubPort + Math.floor(Math.random() * config.numHubNodes)
@@ -86,6 +90,19 @@ function test1(n) {
 	}).catch(e => {
 		error(`#${n} C-${connectorId} <-- ${hubPort}: ${hubInfo || ''} Error=${e}`)
 	})
+}
+
+async function test404(n) {
+	let hubPort = config.hubPort + Math.floor(Math.random() * config.numHubNodes)
+	let connectorId = Math.floor(Math.random() * config.numConnectors)
+	let key = 'demoKey-' + connectorId
+	
+	let ret = await rbcall(`http://${config.hubHost}:${hubPort}/in-exist`, key)
+	
+	if (ret.statusCode !== 404) {
+		error(ret)
+		throw `Fail 404 test: n=${n}, key=${key}`
+	}
 }
 
 log(`Testing: requests=${config.numRequests}, parallel=${config.clientParallel}`)

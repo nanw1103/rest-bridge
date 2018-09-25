@@ -25,8 +25,13 @@ app.use('/test', function(req, res) {
 	}
 })
 
-app.use(function(err){
-	log('err~', String(err))
+app.use(function onerror(err, req, res, next) {
+	let msg
+	if (typeof err === 'object' && !(err instanceof Error))
+		msg = Object.keys(err)
+	else
+		msg = err.toString()
+	log('err~', msg)
 })
 
 let parsed = require('url').parse(config.target)

@@ -55,7 +55,31 @@ function forwardToConnectorByHeaderKey(req, res) {
 	return forwardImpl(k, req, res)
 }
 
+/**
+ * Check if a request has a request body.
+ * A request with a body __must__ either have `transfer-encoding`
+ * or `content-length` headers set.
+ * http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.3
+ *
+ * @param {Object} request
+ * @return {Boolean}
+ */
+function hasbody(req) {
+	return req.headers['transfer-encoding'] !== undefined ||
+		!isNaN(req.headers['content-length'])
+}
+
+function workaroundBodyparserLibIssue(req) {
+	//workaround body parser issue when using bodyParser.text.
+	//It always generates an empty object {} even if no body.
+	//Because we are only using text parser, any object body is from BodyParser bug
+	if (typeof req.body === 'object')
+		delete req.body
+}
+
 function forwardImpl(k, req, res) {
+	workaroundBodyparserLibIssue(req)
+		
 	let connector = connectorSvc.findConnector(k)
 	if (connector) {
 		//redirect to connector	connected to this node			
@@ -94,11 +118,6 @@ function forwardImpl(k, req, res) {
 		//Forward to another hub node which has the connector connection
 		stat.forwarded++
 		headers[rbheaders.FORWARDED] = 1	//prevent from further redirection
-
-		//hack for body parser. With text parser, without body it has an empty object
-		if (typeof req.body === 'object') {
-			delete req.body
-		}
 
 		//log('forwarding to', node.url, req.url)
 		rawHttp.doHttpCall(node.url, req, (err, result) => {
