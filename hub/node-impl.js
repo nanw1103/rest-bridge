@@ -13,7 +13,7 @@ const clientSvc = require('./client-svc.js')
 const statSvc = require('./stat-svc.js')
 const registry = require('./registry.js')
 
-function onError(err, req, res) {
+function onError(err, req, res, next) {
 	let msg = err.toString()
 	log('err~', msg)
 	res.writeHead(503)

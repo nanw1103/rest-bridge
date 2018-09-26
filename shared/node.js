@@ -40,7 +40,7 @@ Object.defineProperties(inst, {
 
 function getPackageVersion() {
 	try {
-		let packageJson = require('../package.json');
+		let packageJson = require('../package.json')
 		return packageJson.version
 	} catch (e) {
 		console.error(e)
