@@ -12,7 +12,7 @@ function doHttpCall(baseUrl, req, callback) {
 		path: req.url,
 		method: req.method,
 		headers: req.headers,
-		setHost: false,
+		setHost: true,
 		timeout: 60000
 	}
 

@@ -23,6 +23,17 @@ rbconnector.start({
 		},
 		'/products': 'https://www.vmware.com',
 		'.*': 'https://www.vmware.com'
-	}
+	},
 	*/
+	
+	/*
+		Specifies websocket heartbeat interval, in milliseconds.
+		Used to keep connection alive. 
+		For example, some proxy appliances (e.g. Nginx) in the route
+		may have a small keep-alive interval, which could interrupt the connection.
+		Setting an interval less than that will do keep the connection alive.
+		If you increase this value, DO also increase it on rest-bridge hub side. Otherwise
+		the hub will treat the connector as idle and actively close the connection.
+	*/
+	//heartbeatInterval: 60000
 })

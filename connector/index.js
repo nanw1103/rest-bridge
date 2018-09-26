@@ -213,7 +213,8 @@ function startConnector(options) {
 	let heartbeatTimer
 	function startHeartbeat() {
 		const task = () => safeWsCall('ping')
-		heartbeatTimer = setInterval(task, constants.HEARTBEAT_INTERVAL)
+		let interval = options.heartbeatInterval || constants.HEARTBEAT_INTERVAL
+		heartbeatTimer = setInterval(task, interval)
 	}
 
 	const initialDelay = 1000

@@ -242,14 +242,16 @@ function findConnector(k) {
 	return connectors[k]
 }
 
-function monitorLiveness() {
+function monitorLiveness(heartbeatInterval) {
+	
+	heartbeatInterval = heartbeatInterval || constants.HEARTBEAT_INTERVAL
 	function scanLiveness() {
 		let now = Date.now()
 		let keys = Object.keys(connectors)
 		for (let k of keys) {
 			let c = connectors[k]
 			let inactive = now - c.stat.lastHeartbeat
-			if (inactive > constants.HEARTBEAT_INTERVAL * 2 + 10000) {
+			if (inactive > heartbeatInterval * 2 + 10000) {
 				log('Close timeout', c.info.id)
 				c.terminate()
 				stat.heartbeatTimeout++
@@ -257,9 +259,8 @@ function monitorLiveness() {
 		}
 	}
 	
-	setInterval(scanLiveness, constants.HEARTBEAT_INTERVAL)
+	setInterval(scanLiveness, heartbeatInterval)
 }
-monitorLiveness()
 
 function initConnection(ws, req, options) {
 	
@@ -333,6 +334,8 @@ function init(server, options) {
 	//}).on('listening', () => {
 	//	log('on listening')
 	})
+		
+	monitorLiveness(options.heartbeatInterval)
 }
 
 function list() {

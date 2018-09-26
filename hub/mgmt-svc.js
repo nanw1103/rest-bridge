@@ -120,14 +120,14 @@ function init(app, options) {
 	
 	ctx = makeContext(options.baseContext, '/rest-bridge/nodes')
 	app.use(ctx, function (req, res) {
-		clusterCollector.collect('nodes', {excludeMaster: true})
+		clusterCollector.collect('nodes', {excludeMaster: !clusterCollector.isMaster})
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
 	ctx = makeContext(options.baseContext, '/rest-bridge/connectors')
 	app.use(ctx, function (req, res) {
-		clusterCollector.collect('connectors', {excludeMaster: true})
+		clusterCollector.collect('connectors', {excludeMaster: !clusterCollector.isMaster})
 			.then(ret => {
 				if (req.url === '/') {
 					_sendJSON(res, ret)

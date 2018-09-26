@@ -30,16 +30,15 @@ function getNodeEnv() {
 function init(app, options) {
 	
 	let ctx = makeContext(options.baseContext, '/rest-bridge/stat')
-	app.use(ctx, function (req, res) {
-		
-		clusterCollector.collect('stat', {excludeMaster: true})
+	app.use(ctx, function (req, res) {		
+		clusterCollector.collect('stat', {excludeMaster: !clusterCollector.isMaster})
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
 	
 	ctx = makeContext(options.baseContext, '/rest-bridge/env')
-	app.use(ctx, function (req, res) {		
-		clusterCollector.collect('env', {excludeMaster: true})
+	app.use(ctx, function (req, res) {
+		clusterCollector.collect('env', {excludeMaster: !clusterCollector.isMaster})
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})

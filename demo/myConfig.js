@@ -94,4 +94,11 @@ module.exports = {
 		Whether allow unregistered connector to connect
 	*/
 	//responseHeaders: {'Access-Control-Allow-Origin': '*'}
+	
+	/*
+		Specifies the interval that this hub should expect connectors to do heartbeat, in milliseconds.
+		It's used by this hub to determine idle connectors and disconnect them.
+		Normally, change to this value requires change of the same property on connector side as well.
+	*/
+	//heartbeatInterval: 60000
 }
