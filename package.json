@@ -1,6 +1,6 @@
 {
   "name": "rest-bridge",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "description": "Expose REST service in private network to public network, via connector (in private network) and hub (public service).",
   "main": "index.js",
   "directories": {
@@ -21,18 +21,19 @@
   "homepage": "https://github.com/nanw1103/rest-bridge#readme",
   "keywords": [
     "REST",
-	"redirect",
-	"forward",
+    "redirect",
+    "forward",
     "cloud connector",
     "service redirect",
-	"api redirect",
-	"api bridge"
+    "api redirect",
+    "api bridge"
   ],
   "dependencies": {
-    "cluster-collector": "^1.0.7",
+    "@nanw/nwlog": "^1.0.3",
     "body-parser": "^1.18.3",
+    "cluster-collector": "^1.0.7",
     "connect": "^3.2.0",
-    "ws": "^5.2.1",
-    "tiny-lru": "^1.6.1"
+    "tiny-lru": "^1.6.1",
+    "ws": "^5.2.1"
   }
 }
