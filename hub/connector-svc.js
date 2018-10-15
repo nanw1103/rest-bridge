@@ -94,7 +94,8 @@ class RemoteConnector {
 			
 			//time
 			lastHeartbeat: now,
-			connectedAt: now
+			connectedAt: now,
+			lastActivity: 0
 		}
 		
 		let id = info.id
@@ -147,6 +148,8 @@ class RemoteConnector {
 		
 		stat.response_bytes += message.length
 		this.stat.response_bytes += message.length
+		
+		this.stat.lastActivity = Date.now()
 		
 		let res
 		if (typeof message === 'string') {

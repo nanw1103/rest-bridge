@@ -207,7 +207,7 @@ function startConnector(options) {
 		} catch (e) {
 			log('Error ws call', method, e)
 			restart()
-		}		
+		}
 	}
 
 	let heartbeatTimer

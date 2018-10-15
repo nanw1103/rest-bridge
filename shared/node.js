@@ -1,16 +1,4 @@
-
-//----------------------------------------------------------------------
-//	Explicitly log unhandled errors
-//----------------------------------------------------------------------
-process.on('uncaughtException', err => {
-	console.error('uncaughtException', err)
-	process.exit(11)
-})
-
-process.on('unhandledRejection', (reason, p) => {
-	console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
-	process.exit(12)
-})
+const nwlog = require('./log.js')
 
 let index = Number.parseInt(process.env.rb_node_id || 0)
 let name = require('cluster').isMaster ? 'MASTER' : index
@@ -47,5 +35,9 @@ function getPackageVersion() {
 		return e.toString()
 	}
 }
+
+nwlog.config({
+	custom: () => inst.short()
+})
 
 module.exports = inst
