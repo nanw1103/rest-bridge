@@ -1,10 +1,9 @@
 'use strict'
-const nwlog = require('@nanw/nwlog')
+const nwlog = require('newheelog')
 
 nwlog.config({
-	colorizeConsole: false,
+	//colorizeConsole: false,
 	moduleNamePadding: 14,
-	//colorizeConsole: true
 })
 
 const { error } = nwlog(__filename)
