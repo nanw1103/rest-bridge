@@ -1,4 +1,4 @@
-const {log, error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')()
 const thisNode = require('../shared/node.js')
 const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')

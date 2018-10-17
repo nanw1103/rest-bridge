@@ -1,13 +1,15 @@
 'use strict'
-const hub = require('../hub')
+const hub = require('../../hub')
 const config = require('./config.js')
 
 const options = {
-	nodes: config.numHubNodes,
-	port: config.hubPort,
+	cluster: {
+		nodes: config.numHubNodes
+	},
+	port: config.hubPort
 }
 if (config.store)
-	options.store = config.store
+	options.cluster.store = config.cluster
 
 hub.create(options)
 	.then(() => {

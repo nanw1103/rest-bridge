@@ -1,17 +1,18 @@
-const { log } = require('../shared/log.js')(__filename)
+const clusterCall = require('cluster-call')
+const { log } = require('../shared/log.js')()
 const thisNode = require('../shared/node.js')
 const registry = require('./registry.js')
-const clusterCall = require('cluster-call')
+const defaults = require('./defaults.js')
 
 require('cluster-collector')
 
-let globalOptions = null
+let globalOptions = Object.assign({}, defaults)
 
 clusterCall.getOptions = () => globalOptions
 
 async function create(options) {
 	
-	let actual = Object.assign({}, options)
+	let actual = overrideOptions(options)
 	await initializeStore(actual)
 
 	actual.port = Number.parseInt(actual.port)
@@ -21,23 +22,38 @@ async function create(options) {
 	globalOptions = actual
 	globalOptions.id = thisNode.id
 	
-	if (Number.parseInt(actual.nodes) > 1)
+	if (Number.parseInt(actual.cluster.nodes) > 1) {
+		if (actual.auth.verifyClient) {
+			throw 'options.auth.verifyClient is not supported in cluster mode. Use single node configuration instead (set options.cluster.nodes=1).'
+		}
+		
 		return createCluster(actual)
-	else
+	} else
 		return createSingleNode(actual)
 }
 
+function overrideOptions(options) {
+	if (!options)
+		return dest
+	let actual = JSON.parse(JSON.stringify(defaults))
+	actual = Object.assign(actual, options)	
+	Object.assign(actual.connector, defaults.connector, options.connector)
+	Object.assign(actual.management, defaults.management, options.management)
+	Object.assign(actual.cluster, defaults.cluster, options.cluster)
+	return actual
+}
+
 async function initializeStore(options) {
-	if (!options.store) {
-		if (Number.parseInt(options.nodes) > 1) {
-			options.store = 'cluster-mem-store:rest-bridge'
+	if (!options.cluster.store) {
+		if (Number.parseInt(options.cluster.nodes) > 1) {
+			options.cluster.store = 'cluster-mem-store:rest-bridge'
 		} else {
-			options.store = 'mem-store'
+			options.cluster.store = 'mem-store'
 		}
 	}
 	
-	log('Using store:', options.store)	
-	registry.configStore(options.store)
+	log('Using store:', options.cluster.store)	
+	registry.configStore(options.cluster.store)
 	await registry.init()
 	log('Store initialized')
 }
@@ -64,7 +80,7 @@ function createCluster(options) {
 		//	log(`setup`)
 		})
 
-	for (let i = 0; i < options.nodes; i++) {
+	for (let i = 0; i < options.cluster.nodes; i++) {
 		startWorker(i)
 	}
 	

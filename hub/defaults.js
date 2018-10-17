@@ -1,4 +1,4 @@
-module.exports = {
+const defaults = {
 	
 	//-------------------------------------------------------------------------------------
 	//	Client interface, which handles requests from clients
@@ -22,6 +22,7 @@ module.exports = {
 		Base HTTP context path for APIs
 	*/
 	//baseContext: '/'
+	
 	
 	//-------------------------------------------------------------------------------------
 	//	Connector interface, which accepts connections from connectors.
@@ -56,12 +57,12 @@ module.exports = {
 		/*
 			Specifies whether management APIs are enabled
 		*/
-		//enableMgmt: true,
+		enableMgmt: true,
 		
 		/*
 			Specifies whether statistics APIs are enabled
 		*/
-		//enableStat: true,
+		enableStat: true,
 		
 		/*
 			Port for management. 
@@ -122,3 +123,5 @@ module.exports = {
 	*/
 	//heartbeatInterval: 60000,	
 }
+
+module.exports = defaults

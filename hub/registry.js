@@ -1,6 +1,6 @@
 const lru = require('tiny-lru')
 const thisNode = require('../shared/node.js')
-const {log, error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')()
 const storeFactory = require('./store/factory.js')
 const useNodeQuery = require('./use-node-query.js')
 

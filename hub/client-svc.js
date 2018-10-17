@@ -1,4 +1,4 @@
-const {log, error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')()
 const rbheaders = require('../shared/constants.js').headers
 const thisNode = require('../shared/node.js')
 const rawHttp = require('../shared/raw-http.js')
@@ -199,10 +199,13 @@ function init(app, options) {
 	
 	app.use(addHubInfoHeader)
 	
-	if (options && options.responseHeaders) {
+	let respHeaders
+	if (options && options.auth)
+		respHeaders = options.auth.responseHeaders
+	if (respHeaders) {
 		app.use((req, res, next) => {
-			for (let k in options.responseHeaders)
-				res.setHeader(k, options.responseHeaders[k])
+			for (let k in respHeaders)
+				res.setHeader(k, respHeaders[k])
 			next()
 		})
 	}

@@ -1,11 +1,13 @@
 const url = require('url')
 
 function rbcall(target, rbkey, options) {
-	
+
 	let targetUrl = url.parse(target)
-	
 	options = Object.assign({headers:{}}, options, targetUrl)
-	options.headers['x-rest-bridge-key'] = rbkey
+	
+	if (rbkey) {
+		options.headers['x-rest-bridge-key'] = rbkey
+	}
 		
 	let httplib
 	if (options.httplib)

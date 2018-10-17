@@ -1,10 +1,10 @@
 'use strict'
 const http = require('http')
-const {log, error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../../shared/log.js')()
 const config = require('./config.js')
-const rbheaders = require('../shared/constants.js').headers
+const rbheaders = require('../../shared/constants.js').headers
 const delay = millis => millis > 0 ? new Promise(resolve => setTimeout(resolve, millis)) : 0
-const rbcall = require('../shared/rbcall.js')
+const rbcall = require('../../shared/rbcall.js')
 
 let processed = 0
 function test1(n) {

@@ -1,6 +1,6 @@
 'use strict'
-const rbconnector = require('../connector')
-const thisNode = require('../shared/node.js')
+const rbconnector = require('../../connector')
+const thisNode = require('../../shared/node.js')
 const config = require('./config.js')
 
 let port = config.hubPort + thisNode.index % config.numHubNodes

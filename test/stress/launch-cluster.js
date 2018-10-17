@@ -1,5 +1,5 @@
 const cluster = require('cluster')
-const { log } = require('../shared/log.js')(__filename)
+const { log } = require('../../shared/log.js')()
 const config = require('./config.js')
 
 function startWorker(id, onExit) {

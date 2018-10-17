@@ -41,7 +41,7 @@ class FsStore {
 	
 	get(k) {
 		let path = this.repo + '/' + k
-		//require('../shared/log.js')(__filename).log('store get', path)
+		//require('../shared/log.js')().log('store get', path)
 
 		return new Promise((resolve, reject) => {
 			fs.readFile(path, 'utf8', (err, data) => {

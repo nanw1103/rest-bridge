@@ -1,4 +1,4 @@
-const nwlog = require('./log.js')
+const newheelog = require('./log.js')
 
 let index = Number.parseInt(process.env.rb_node_id || 0)
 let name = require('cluster').isMaster ? 'MASTER' : index
@@ -36,7 +36,7 @@ function getPackageVersion() {
 	}
 }
 
-nwlog.config({
+newheelog.config({
 	custom: () => inst.short()
 })
 

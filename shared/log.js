@@ -1,12 +1,12 @@
 'use strict'
-const nwlog = require('newheelog')
+const newheelog = require('newheelog')
 
-nwlog.config({
-	//colorizeConsole: false,
+newheelog.config({
+	colorizeConsole: false,
 	moduleNamePadding: 14,
 })
 
-const { error } = nwlog(__filename)
+const { error } = newheelog()
 
 process.on('uncaughtException', err => {
 	error('uncaughtException', err)
@@ -18,4 +18,4 @@ process.on('unhandledRejection', (reason, p) => {
 	process.exit(12)
 })
 
-module.exports = nwlog
+module.exports = newheelog

@@ -1,6 +1,6 @@
 const WebSocket = require('ws')
 
-const {log} = require('../shared/log.js')(__filename)
+const {log} = require('../shared/log.js')()
 const rawHttp = require('../shared/raw-http.js')
 const constants = require('../shared/constants.js')
 const EventEmitter = require('events')
@@ -103,6 +103,7 @@ function startConnector(options) {
 		}).on('error', e => {
 			log('ws error:', e.toString())
 			ws.close()
+			events.emit('failure', e)
 		//}).on('ping', data => {
 		//	log('ws ping', data.toString())
 		//}).on('pong', () => {

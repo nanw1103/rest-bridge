@@ -1,6 +1,6 @@
 const WebSocket = require('ws')
 
-const {log} = require('../shared/log.js')(__filename)
+const {log} = require('../shared/log.js')()
 const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')
 const thisNode = require('../shared/node.js')
@@ -294,12 +294,12 @@ function initConnection(ws, req, options) {
 }
 
 async function verifyClient(clientInfo, options) {
-	if (options.verifyClient) {
-		let allow = await options.verifyClient(clientInfo)
+	if (options.auth.verifyClient) {
+		let allow = await options.auth.verifyClient(clientInfo)
 		if (!allow)
 			return Promise.reject('Failing custom verifyClient')
 	}
-	await registry.onConnect(clientInfo, options.allowUnregistered)
+	await registry.onConnect(clientInfo, options.auth.allowUnregistered)
 }
 
 function retrieveClientInfo(req) {

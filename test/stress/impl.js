@@ -1,6 +1,6 @@
 'use strict'
 
-const { log, error } = require('../shared/log.js')(__filename)
+const { log, error } = require('../../shared/log.js')()
 const delay = millis => new Promise(resolve => setTimeout(resolve, millis))
 
 const clusterTarget = require('./cluster-target.js')

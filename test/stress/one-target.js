@@ -1,5 +1,5 @@
 'use strict'
-const {log, error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../../shared/log.js')()
 const connect = require('connect')
 const app = connect()
 const config = require('./config.js')

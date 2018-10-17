@@ -3,7 +3,7 @@ const connect = require('connect')
 const bodyParser = require('body-parser')
 const http = require('http')
 
-const {log, error} = require('../shared/log.js')(__filename)
+const {log, error} = require('../shared/log.js')()
 
 const thisNode = require('../shared/node.js')
 
@@ -39,7 +39,7 @@ function create(options) {
 	log('Network', JSON.stringify(ips))
 	thisNode.url = `http://${ips._first}:${port}`
 
-	registry.configStore(options.store)
+	registry.configStore(options.cluster.store)
 
 	//create management app
 	let managementApp = connect()
@@ -47,30 +47,36 @@ function create(options) {
 		type: '*/*',
 		limit: '1024kb'
 	}))
-	statSvc.init(managementApp, options)
-	mgmtSvc.init(managementApp, options)
-		
-	if (!options.managementPort)
-		options.managementPort = options.port
+	
+	if (options.management.enableStat)
+		statSvc.init(managementApp, options)
+	else
+		log('Management APIs are disabled')
+	if (options.management.enableMgmt)
+		mgmtSvc.init(managementApp, options)
+	else
+		log('Statistics APIs are disabled')
+	
+	if (!options.management.port)
+		options.management.port = options.port
 	
 	if (_reusedServer) {
 		managementServer = _reusedServer
 	} else {
 		managementServer = http.createServer(managementApp)
-		managementServer.listen(options.managementPort, options.managementHost, err => {
+		managementServer.listen(options.management.port, options.management.host, err => {
 			if (err) {
 				error('Error starting management server', err)
 				process.exit(11)
 			}				
-			log(`Hub - management server started: ${options.managementHost || ''}:${options.managementPort}`)
+			log(`Hub - management server started: ${options.management.host || ''}:${options.management.port}`)
 		})
 	}
 		
 	//create client app
-	if (!options.managementPort || options.managementPort === options.port) {
+	if (!options.management.port || options.management.port === options.port) {
 		clientSvc.init(managementApp, options)		
 		clientServer = managementServer
-		log('Sharing client server & management server')
 	} else {
 		let clientApp = connect()
 		clientApp.use(bodyParser.text({
@@ -92,20 +98,18 @@ function create(options) {
 	managementApp.use(onError)
 	
 	//create connector service
-	if (!options.connectorPort || options.connectorPort === options.port) {
+	if (!options.connector.port || options.connector.port === options.port) {
 		connectorServer = clientServer
-		log('Sharing connector server & client server')
-	} else if (options.connectorPort === options.managementPort) {
+	} else if (options.connector.port === options.management.port) {
 		connectorServer = managementServer
-		log('Sharing connector server & management server')
 	} else {
 		connectorServer = http.createServer()
-		connectorServer.listen(options.connectorPort, options.connectorHost, err => {
+		connectorServer.listen(options.connector.port, options.connector.host, err => {
 			if (err) {
 				error('Error starting connector server', err)
 				process.exit(13)
 			}				
-			log(`Hub - connector server started: ${options.connectorHost || ''}:${options.connectorPort}`)
+			log(`Hub - connector server started: ${options.connector.host || ''}:${options.connector.port}`)
 		})
 	}
 	connectorSvc.init(connectorServer, options)
