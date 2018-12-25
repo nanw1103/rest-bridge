@@ -19,7 +19,7 @@ function parseEndpoint(str) {
 		if (!port)
 			throw 'Can not identify port in url: ' + str
 	}
-	
+
 	return {
 		host: parsed.hostname,
 		port: port

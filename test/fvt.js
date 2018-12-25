@@ -1,5 +1,4 @@
 const promisify = require('util').promisify
-const path = require('path')
 const {log, error} = require('../shared/log.js')()
 const hub = require('../hub')
 const rbconnector = require('../connector')
@@ -11,17 +10,17 @@ async function prepare(hubConfig, connectorConfig) {
 
 	hubConfig = hubConfig || require('./defaultHubConfig.js')
 	connectorConfig = connectorConfig || require('./defaultConnectorConfig.js')
-	
-	await createTarget()	
+
+	await createTarget()
 	await hub.create(hubConfig)
-	
+
 	hub.registry.register({
 		key: 'demoKey',
 		description: 'demo connector'
 	})
-		
+
 	await demoDelay(2000)
-	
+
 	return new Promise((resolve, reject) => {
 		rbconnector
 			.start(connectorConfig)
@@ -30,14 +29,14 @@ async function prepare(hubConfig, connectorConfig) {
 	})
 }
 
-function createTarget() {	
+function createTarget() {
 	const app = require('connect')()
 	const bodyParser = require('body-parser')
 	app.use(bodyParser.raw({
 		type: '*/*',
 		limit: '1024kb'
 	}))
-	
+
 	app.use('/hello', function(req, res) {
 		res.end('Hello, mortal.')
 	})
@@ -71,7 +70,7 @@ async function runTests(tests) {
 
 function fvt(hubConfig, connectorConfig, testFn) {
 	let name = require('newheelog/find-module-name')()
-	
+
 	log('SUITE', name, '------------------------------------------')
 	function finish(err) {
 		if (err) {
@@ -82,7 +81,7 @@ function fvt(hubConfig, connectorConfig, testFn) {
 			process.exit()
 		}
 	}
-	
+
 	prepare(hubConfig, connectorConfig)
 		.then(() => {
 			if (Array.isArray(testFn)) {

@@ -4,14 +4,14 @@ function rbcall(target, rbkey, options) {
 
 	let targetUrl = url.parse(target)
 	options = Object.assign({headers:{}}, options, targetUrl)
-	
+
 	if (rbkey) {
 		options.headers['x-rest-bridge-key'] = rbkey
 	}
-		
+
 	let httplib
 	if (options.httplib)
-		httplib = httplib
+		httplib = options.httplib
 	else {
 		let tmp = target.toString().toLowerCase()
 		if (tmp.startsWith('https://'))
@@ -31,7 +31,7 @@ function rbcall(target, rbkey, options) {
 			resp.setEncoding('utf8')
 				.on('data', chunk => ret.body += chunk)
 				.on('end', () => resolve(ret))
-			})
+		})
 		req.on('error', reject)
 		if (options.data)
 			req.write(options.data)

@@ -8,7 +8,7 @@ function ChildStore(id) {
 		get: function(o, k) {
 			if (k in o)
 				return o[k]
-			
+
 			return function() {
 				let args = [].slice.apply(arguments)
 				return clusterCall('master').clusterMemStoreOp(id, k, args)

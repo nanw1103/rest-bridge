@@ -11,32 +11,32 @@ let globalOptions = Object.assign({}, defaults)
 clusterCall.getOptions = () => globalOptions
 
 async function create(options) {
-	
+
 	let actual = overrideOptions(options)
 	await initializeStore(actual)
 
 	actual.port = Number.parseInt(actual.port)
 	if (!Number.isInteger(actual.port))
 		throw new Error('Invalid configuration. options.port must be integer. Configured: ' + options.port)
-	
+
 	globalOptions = actual
 	globalOptions.id = thisNode.id
-	
+
 	if (Number.parseInt(actual.cluster.nodes) > 1) {
 		if (actual.auth.verifyClient) {
 			throw 'options.auth.verifyClient is not supported in cluster mode. Use single node configuration instead (set options.cluster.nodes=1).'
 		}
-		
+
 		return createCluster(actual)
 	} else
 		return createSingleNode(actual)
 }
 
 function overrideOptions(options) {
-	if (!options)
-		return dest
 	let actual = JSON.parse(JSON.stringify(defaults))
-	actual = Object.assign(actual, options)	
+	if (!options)
+		return actual
+	actual = Object.assign(actual, options)
 	Object.assign(actual.connector, defaults.connector, options.connector)
 	Object.assign(actual.management, defaults.management, options.management)
 	Object.assign(actual.cluster, defaults.cluster, options.cluster)
@@ -51,8 +51,8 @@ async function initializeStore(options) {
 			options.cluster.store = 'mem-store'
 		}
 	}
-	
-	log('Using store:', options.cluster.store)	
+
+	log('Using store:', options.cluster.store)
 	registry.configStore(options.cluster.store)
 	await registry.init()
 	log('Store initialized')
@@ -83,7 +83,7 @@ function createCluster(options) {
 	for (let i = 0; i < options.cluster.nodes; i++) {
 		startWorker(i)
 	}
-	
+
 	function startWorker(index) {
 		cluster.fork({
 			RB_INDEX: index
@@ -100,6 +100,6 @@ function createSingleNode(options) {
 }
 
 module.exports = {
-	create: create,
-	registry: registry
+	create,
+	registry
 }

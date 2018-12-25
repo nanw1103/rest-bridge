@@ -5,7 +5,7 @@ const app = connect()
 const config = require('./config.js')
 
 if (config.testLargeBody) {
-	
+
 	const bodyParser = require('body-parser')
 	app.use(bodyParser.raw({
 		type: '*/*',
@@ -16,7 +16,7 @@ if (config.testLargeBody) {
 app.use('/test', function(req, res) {
 	let n = Number.parseInt(req.url.substring(1))
 	res.writeHead(200, {'x-ret': n})
-	
+
 	if (config.testLargeBody) {
 		let len = typeof req.body === 'string' ? Buffer.byteLength(req.body) : req.body.length
 		res.end(String(len))

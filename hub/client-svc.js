@@ -11,7 +11,7 @@ const makeContext = require('./context-util.js').makeContext
 const stat = {
 	incoming: 0,
 	missingConnectorKey: 0,
-	missingConnector: 0,	
+	missingConnector: 0,
 	connectorFailure: 0,
 	noFurtherRedirection: 0,
 	forwarded: 0,
@@ -40,7 +40,7 @@ function forwardToConnectorByHeaderKey(req, res) {
 
 	//log('forwardToConnectorByHeaderKey', req.method, req.url)
 	stat.incoming++
-	
+
 	let headers = req.headers
 	let k = headers[rbheaders.KEY]
 	//k = 'demoKey'
@@ -48,7 +48,7 @@ function forwardToConnectorByHeaderKey(req, res) {
 	if (!k) {
 		stat.missingConnectorKey++
 		res.writeHead(503, 'Missing ' + rbheaders.KEY)
-		res.end()		
+		res.end()
 		return
 	}
 
@@ -79,10 +79,10 @@ function workaroundBodyparserLibIssue(req) {
 
 function forwardImpl(k, req, res) {
 	workaroundBodyparserLibIssue(req)
-		
+
 	let connector = connectorSvc.findConnector(k)
 	if (connector) {
-		//redirect to connector	connected to this node			
+		//redirect to connector	connected to this node
 		connector.send(req, onResponseForwardToClient)
 		return
 	}
@@ -99,7 +99,7 @@ function forwardImpl(k, req, res) {
 
 	//connector is not on this node. Find it in registry
 	registry.findConnection(k).then(connectionInfo => {
-		
+
 		//log('connectionInfo', connectionInfo)
 
 		let node = connectionInfo ? connectionInfo.node : null
@@ -111,8 +111,8 @@ function forwardImpl(k, req, res) {
 			res.end()
 			stat.missingConnector++
 			return
-		}		
-		
+		}
+
 		//log('forwarding to:', node)
 
 		//Forward to another hub node which has the connector connection
@@ -125,7 +125,7 @@ function forwardImpl(k, req, res) {
 				//the peer seems not working properly. Clear cache
 				registry.removeConnectionCache(k)
 			}
-			
+
 			onResponseForwardToClient(err, result)
 		})
 	}).catch(e => {
@@ -134,16 +134,16 @@ function forwardImpl(k, req, res) {
 		res.end()
 		stat.missingConnector++
 	})
-	
-	
+
+
 	function onResponseForwardToClient(err, result) {
 		if (res.finished)
 			return
-		
+
 		if (err) {
 			stat.connectorFailure++
 			res.writeHead(503, 'WS failure: ' + String(err))
-			res.end()				
+			res.end()
 			return
 		}
 
@@ -154,10 +154,10 @@ function forwardImpl(k, req, res) {
 		}
 
 		appendHubInfoHeader(req, result)
-		
+
 		//log('result.statusCode', result.statusCode)
 		//log('result.headers', headers)
-		
+
 		//handle 'Invalid character in statusMessage'
 		try {
 			res.writeHead(result.statusCode, result.statusMessage, headers)
@@ -169,7 +169,7 @@ function forwardImpl(k, req, res) {
 					res.write(c)
 				}
 			}
-			
+
 			res.end()
 		} catch (e) {
 			error('Error write back to client', e)
@@ -196,9 +196,9 @@ function addHubInfoHeader(req, res, next) {
 }
 
 function init(app, options) {
-	
+
 	app.use(addHubInfoHeader)
-	
+
 	let respHeaders
 	if (options && options.auth)
 		respHeaders = options.auth.responseHeaders
@@ -209,15 +209,15 @@ function init(app, options) {
 			next()
 		})
 	}
-	
+
 	let ctx = makeContext(options.baseContext, '/rest-bridge-forward')
 	app.use(ctx, forwardToConnectorByPathKey)
-	
+
 	ctx = makeContext(options.baseContext, '')
 	app.use(ctx, forwardToConnectorByHeaderKey)
 }
 
 module.exports = {
-	init: init,
-	stat: stat
+	init,
+	stat
 }

@@ -19,18 +19,18 @@ const stat = {
 	history_connected: 0,
 	rejected: 0,
 	heartbeatTimeout: 0,
-	
+
 	//messages
 	outgoing: 0,
 	outgoing_bytes: 0,
 	response: 0,
 	response_bytes: 0,
-	
+
 	//errors
 	errWs: 0,
 	errMissingWorkingResp: 0,
 	errParsingResponse: 0,
-	errDupWorkingResp: 0,	
+	errDupWorkingResp: 0,
 	errTimeout: 0,
 	errSendError: 0,
 }
@@ -64,7 +64,7 @@ function removeRbHeaders(headers) {
 }
 
 class RemoteConnector {
-	
+
 	constructor(ws, info) {
 		Object.defineProperties(this, {
 			ws: {
@@ -74,7 +74,7 @@ class RemoteConnector {
 				value: {}
 			}
 		})
-		
+
 		let now = Date.now()
 
 		this.info = info
@@ -83,23 +83,23 @@ class RemoteConnector {
 			outgoing_bytes: 0,
 			response: 0,
 			response_bytes: 0,
-			
+
 			//errors
 			errWs: 0,
 			errMissingWorkingResp: 0,
 			errParsingResponse: 0,
-			errDupWorkingResp: 0,	
+			errDupWorkingResp: 0,
 			errTimeout: 0,
 			errSendError: 0,
-			
+
 			//time
 			lastHeartbeat: now,
 			connectedAt: now,
 			lastActivity: 0
 		}
-		
+
 		let id = info.id
-		
+
 		ws.on('open', () => {
 			log('ws open', id)
 		}).on('close', (code, reason) => {
@@ -120,16 +120,16 @@ class RemoteConnector {
 		}).on('upgrade', (/*res*/) => {
 			log('ws upgrade', id)
 		}).on('message', this.handleResponseMessage.bind(this))
-		
+
 		connectors[info.key] = this
 		stat.connected = Object.keys(connectors).length
 	}
-	
+
 	terminate() {
 		delete connectors[this.info.key]
 		this.ws.terminate()
 	}
-	
+
 	close(code, data) {
 		if (code === 'quit')
 			code = constants.WS_SERVER_CMD_QUIT
@@ -138,19 +138,19 @@ class RemoteConnector {
 			this.ws.close(code, data)
 		} catch (e) {
 			this.ws.terminate()
-		}		
+		}
 	}
-	
+
 	handleResponseMessage(message) {
-		
+
 		stat.response++
 		this.stat.response++
-		
+
 		stat.response_bytes += message.length
 		this.stat.response_bytes += message.length
-		
+
 		this.stat.lastActivity = Date.now()
-		
+
 		let res
 		if (typeof message === 'string') {
 			res = parseResMessage(message, this.info.id)
@@ -158,18 +158,18 @@ class RemoteConnector {
 			let headerEnd = message.readInt32LE()
 			let headerText = message.toString('utf8', 8, headerEnd)
 			res = parseResMessage(headerText, this.info.id)
-			
+
 			//console.log('header len', headerText.length, 'body len', message.length -headerEnd)
 			if (message.length > headerEnd)
 				res.body = message.slice(headerEnd)
 		}
-		
+
 		if (!res) {
 			stat.errParsingResponse++
 			this.stat.errParsingResponse++
 			return
 		}
-		
+
 		let workingResp = this.pendingResp[res.seq]
 		if (!workingResp) {
 			stat.errMissingWorkingResp++
@@ -177,25 +177,25 @@ class RemoteConnector {
 			log(`[${this.info.id}]: pending resp not found: ${res.seq}.`)
 			return
 		}
-				
+
 		workingResp.finish(null, res)
 	}
-	
-	send(req, callback) {		
+
+	send(req, callback) {
 		stat.outgoing++
 		this.stat.outgoing++
-		
+
 		let seq = this.stat.outgoing
-				
+
 		removeRbHeaders(req.headers)
 		req.headers[rbheaders.SEQ] = seq
-				
-		let text = rawHttp.reqToText(req)		
-		
+
+		let text = rawHttp.reqToText(req)
+
 		let bytes = Buffer.byteLength(text)
 		stat.outgoing_bytes += bytes
 		this.stat.outgoing_bytes += bytes
-		
+
 		//log('sending seq', seq)
 
 		let pending = {
@@ -218,10 +218,10 @@ class RemoteConnector {
 				pending.finish('Timeout')
 			}, 20000)
 		}
-		
+
 		this.pendingResp[seq] = pending
 
-		let _this_stat = this.stat		
+		let _this_stat = this.stat
 		try {
 			this.ws.send(text, err => {
 				if (err) {
@@ -246,7 +246,7 @@ function findConnector(k) {
 }
 
 function monitorLiveness(heartbeatInterval) {
-	
+
 	heartbeatInterval = heartbeatInterval || constants.HEARTBEAT_INTERVAL
 	function scanLiveness() {
 		let now = Date.now()
@@ -261,15 +261,15 @@ function monitorLiveness(heartbeatInterval) {
 			}
 		}
 	}
-	
+
 	setInterval(scanLiveness, heartbeatInterval)
 }
 
 function initConnection(ws, req, options) {
-	
-	stat.history_connected++		
+
+	stat.history_connected++
 	let clientInfo = retrieveClientInfo(req)
-	clientInfo.ip = req.connection.remoteAddress	
+	clientInfo.ip = req.connection.remoteAddress
 
 	log('Incoming connector', JSON.stringify(clientInfo))
 
@@ -314,30 +314,30 @@ function retrieveClientInfo(req) {
 }
 
 function init(server, options) {
-	
+
 	//*
-	let verifyClient = () => {
+	let verifyClientFn = () => {
 		//origin {String} The value in the Origin header indicated by the client.
 		//secure {Boolean} true if req.connection.authorized or req.connection.encrypted is set.
 		//log('verifyClient', info.req.headers)
 		return true
 	}
 	//*/
-	
+
 	let ctx = makeContext(options.baseContext, '/rest-bridge/connect')
-	new WebSocket.Server({ 
+	new WebSocket.Server({
 		server: server,
 		path: ctx,
-		verifyClient: verifyClient
+		verifyClient: verifyClientFn
 	}).on('connection', (ws, req) => initConnection(ws, req, options))
-	.on('error', e => {
-		log('on error:', e)
-	//}).on('headers', (/*headers, request*/) => {
-	//	log('on headers')
-	//}).on('listening', () => {
-	//	log('on listening')
-	})
-		
+		.on('error', e => {
+			log('on error:', e)
+			//}).on('headers', (/*headers, request*/) => {
+			//	log('on headers')
+			//}).on('listening', () => {
+			//	log('on listening')
+		})
+
 	monitorLiveness(options.heartbeatInterval)
 }
 
@@ -353,9 +353,9 @@ function close() {
 }
 
 module.exports = {
-	init: init,
-	stat: stat,
-	list: list,
-	findConnector: findConnector,
-	close: close
+	init,
+	stat,
+	list,
+	findConnector,
+	close
 }

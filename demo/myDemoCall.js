@@ -1,7 +1,7 @@
 const http = require('http')
 
-//To do a rest-bridge call, a pairing key must be specified, so as to distinguish 
-//which connector to use. The pairing key can be specified either in request 
+//To do a rest-bridge call, a pairing key must be specified, so as to distinguish
+//which connector to use. The pairing key can be specified either in request
 //header, or request path.
 //Use vanilla http lib here for less dependencies for demo purpose.
 
@@ -26,7 +26,7 @@ http.get(options, resp => {
 		})
 }).on('error', console.error)
 	.end()
-	
+
 //Method 2 - Specify pairing key in request path.
 //This method requires a fixed base path to be added
 //http.get('http://localhost/rest-bridge-forward/<pairingKey>/hello')

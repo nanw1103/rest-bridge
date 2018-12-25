@@ -13,12 +13,12 @@ class CachedStore {
 		this.options = Object.assign({}, defaultOptions, options)
 		this.cache = lru(options.size, false, options.ttl, options.expire)
 	}
-	
+
 	set(k, obj) {
 		this.cache.set(k, obj)
 		return this.impl.set(k, obj)
 	}
-	
+
 	async get(k) {
 		let v
 		if (!this.cache.has(k)) {
@@ -27,19 +27,19 @@ class CachedStore {
 			} catch (e) {
 				v = null
 			}
-			
+
 			this.cache.set(k, v)
 		} else {
 			v = this.cache.get(k)
 		}
 		return v
 	}
-	
+
 	remove(k) {
 		this.cache.remove(k)
 		return this.impl.remove(k)
 	}
-	
+
 	list(path) {
 		let v
 		if (!this.cache.has(path)) {
@@ -50,7 +50,7 @@ class CachedStore {
 		}
 		return v
 	}
-	
+
 	async has(k) {
 		if (this.cache.has(k))
 			return true

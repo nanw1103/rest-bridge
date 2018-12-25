@@ -15,7 +15,7 @@ function getConnectors() {
 		let stat = map[k].stat
 		stat.lastHeartbeatSpan = now - stat.lastHeartbeat
 	}
-	
+
 	return {
 		node: {
 			url: thisNode.url,
@@ -48,7 +48,7 @@ const API_LIST = [{
 	name: 'registry.connector',
 	method: 'get',
 	path: '/registry/<connector-key>',
-	description: 'Get information of specific connector'	
+	description: 'Get information of specific connector'
 }, {
 	name: 'nodes',
 	method: 'get',
@@ -77,14 +77,14 @@ const API_LIST = [{
 }]
 
 function init(app, options) {
-	
+
 	let ctx = makeContext(options.baseContext, '/rest-bridge/registry/_dev_clear')
 	app.use(ctx, function (req, res) {
 		registry._dev_clear()
 			.then(info => _sendJSON(res, info))
 			.catch(err => _sendError(res, err))
 	})
-	
+
 	ctx = makeContext(options.baseContext, '/rest-bridge/registry')
 	app.use(ctx, function (req, res) {
 		if (req.method === 'POST') {
@@ -94,7 +94,7 @@ function init(app, options) {
 			else
 				data = {}
 			let info = registry.register(data)
-			
+
 			_sendJSON(res, info)
 		} else if (req.method === 'GET') {
 			if (req.url === '/') {
@@ -117,14 +117,14 @@ function init(app, options) {
 			res.end()
 		}
 	})
-	
+
 	ctx = makeContext(options.baseContext, '/rest-bridge/nodes')
 	app.use(ctx, function (req, res) {
 		clusterCollector.collect('nodes', {excludeMaster: !clusterCollector.isMaster})
 			.then(ret => _sendJSON(res, ret))
 			.catch(err => _sendError(res, err))
 	})
-	
+
 	ctx = makeContext(options.baseContext, '/rest-bridge/connectors')
 	app.use(ctx, function (req, res) {
 		clusterCollector.collect('connectors', {excludeMaster: !clusterCollector.isMaster})
@@ -150,12 +150,12 @@ function init(app, options) {
 			})
 			.catch(err => _sendError(res, err))
 	})
-	
+
 	ctx = makeContext(options.baseContext, '/rest-bridge/node')
 	app.use(ctx, function (req, res) {
 		_sendJSON(res, thisNode)
 	})
-	
+
 	ctx = makeContext(options.baseContext, '/rest-bridge')
 	app.use(ctx, function (req, res) {
 		//console.log(req.url)
@@ -164,7 +164,7 @@ function init(app, options) {
 			res.end()
 			return
 		}
-		
+
 		let base = req.originalUrl
 		if (base.endsWith('/'))
 			base = base.substring(0, base.length - 1)
@@ -190,5 +190,5 @@ function _sendJSON(res, obj, additionalHeaders) {
 }
 
 module.exports = {
-	init: init
+	init
 }

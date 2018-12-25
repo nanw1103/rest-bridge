@@ -7,7 +7,7 @@ let port = config.hubPort + thisNode.index % config.numHubNodes
 
 let hubUrl = `http://${config.hubHost}:${port}`
 
-rbconnector.start({	
+rbconnector.start({
 	hub: hubUrl,
 	info: {
 		key: 'demoKey-' + thisNode.index,
@@ -15,7 +15,7 @@ rbconnector.start({
 	},
 	target: config.target,
 	verbose: config.connectorVerbose,
-	
+
 	//additional pattern based routes can be specified as:
 	/*
 	routes: {

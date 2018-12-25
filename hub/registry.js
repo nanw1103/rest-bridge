@@ -24,14 +24,14 @@ function init() {
 }
 
 function register(info) {
-	
+
 	if (!info.key)
 		info.key = Math.random().toString(36).substring(2).padEnd(12, '0')
-	
+
 	info.regTime = Date.now()
-	
+
 	log('Registering', JSON.stringify(info))
-	
+
 	let item = 'reg/' + info.key
 	save(item, info)
 	return info
@@ -47,9 +47,9 @@ function remove(k) {
 }
 
 async function onConnect(info, allowUnregistered) {
-	
+
 	let k = info.key
-	
+
 	if (!allowUnregistered)
 		await store.get('reg/' + k)
 
@@ -87,7 +87,7 @@ function get(k) {
 		connect: null,
 		disconnect: null
 	}
-	
+
 	let ignore = () => 0
 	return Promise.all([
 		store.get('reg/' + k).then(data => ret.reg = data).catch(ignore),
@@ -101,7 +101,7 @@ async function findConnection(k) {
 	if (!conn) {
 		conn = await store.get('connect/' + k)
 		connectionCache.set(k, conn)
-	}	
+	}
 	return conn
 }
 
@@ -130,12 +130,12 @@ const registry = {
 	get: get,
 	register: register,
 	remove: remove,
-	
+
 	onConnect: onConnect,
 	onDisconnect: onDisconnect,
 	findConnection: findConnection,
 	removeConnectionCache: removeConnectionCache,
-	
+
 	useNodeQuery: useNodeQuery
 }
 

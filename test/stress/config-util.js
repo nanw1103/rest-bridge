@@ -1,8 +1,8 @@
 
 function loadDefault(string) {
 	let defaultConfig = require(string)
-	
-		
+
+
 	///////////////////////////////////////
 	//	Actual
 	///////////////////////////////////////
@@ -14,7 +14,7 @@ function loadDefault(string) {
 				throw new Error('Key is not in default config:', name)
 			return
 		}
-		
+
 		let defaultValue = defaultConfig[name]
 		let v
 		if (typeof defaultValue === 'number') {
@@ -41,7 +41,7 @@ function loadDefault(string) {
 				throw new Error(`Invalid argument. Assigning to non-primitive type. name=${name}, typeof default value=${typeof defaultValue}`)
 			}
 		}
-		
+
 		actual[name] = v
 		//console.log(`config override: ${name}=${v}`)
 	}
@@ -53,11 +53,11 @@ function loadDefault(string) {
 	for (let k in process.env) {
 		if (!k.startsWith(PREFIX))
 			continue
-		
+
 		let name = k.substring(PREFIX.length)
 		let value = process.env[k]
 		override(name, value, true)
-		
+
 	}
 
 	///////////////////////////////////////
@@ -66,7 +66,7 @@ function loadDefault(string) {
 	for (let i = 2; i < process.argv.length; i++) {
 		let arg = process.argv[i]
 		let s = arg.indexOf('=')
-		
+
 		let name
 		let v
 		if (s < 0) {

@@ -3,7 +3,7 @@ const config = require('./config.js')
 
 function start() {
 	console.log('! Launching connector cluster')
-	
+
 	return launchCluster('one-connector.js', config.numConnectors)
 }
 

@@ -25,7 +25,7 @@ let clientServer
 let connectorServer
 
 function create(options) {
-	
+
 	if (options.id)
 		thisNode.id = options.id
 	let port = Number.parseInt(options.port)
@@ -47,7 +47,7 @@ function create(options) {
 		type: '*/*',
 		limit: '1024kb'
 	}))
-	
+
 	if (options.management.enableStat)
 		statSvc.init(managementApp, options)
 	else
@@ -56,10 +56,10 @@ function create(options) {
 		mgmtSvc.init(managementApp, options)
 	else
 		log('Statistics APIs are disabled')
-	
+
 	if (!options.management.port)
 		options.management.port = options.port
-	
+
 	if (_reusedServer) {
 		managementServer = _reusedServer
 	} else {
@@ -68,14 +68,14 @@ function create(options) {
 			if (err) {
 				error('Error starting management server', err)
 				process.exit(11)
-			}				
+			}
 			log(`Hub - management server started: ${options.management.host || ''}:${options.management.port}`)
 		})
 	}
-		
+
 	//create client app
 	if (!options.management.port || options.management.port === options.port) {
-		clientSvc.init(managementApp, options)		
+		clientSvc.init(managementApp, options)
 		clientServer = managementServer
 	} else {
 		let clientApp = connect()
@@ -90,13 +90,13 @@ function create(options) {
 			if (err) {
 				error('Error starting client server', err)
 				process.exit(12)
-			}				
+			}
 			log(`Hub - client server started: ${options.clientHost || ''}:${options.port}`)
 		})
 	}
-	
+
 	managementApp.use(onError)
-	
+
 	//create connector service
 	if (!options.connector.port || options.connector.port === options.port) {
 		connectorServer = clientServer
@@ -108,12 +108,12 @@ function create(options) {
 			if (err) {
 				error('Error starting connector server', err)
 				process.exit(13)
-			}				
+			}
 			log(`Hub - connector server started: ${options.connector.host || ''}:${options.connector.port}`)
 		})
 	}
 	connectorSvc.init(connectorServer, options)
-	
+
 	return {
 		_close: close,
 		_managementApp: managementApp,
@@ -127,7 +127,7 @@ function create(options) {
 function getIPs() {
 	let ret = {}
 	let _first
-	
+
 	let ifaces = os.networkInterfaces()
 	Object.keys(ifaces).forEach(ifname => {
 		let ips = []
@@ -154,7 +154,7 @@ function close() {
 }
 
 module.exports = {
-	create: create,
-	close: close,
-	registry: registry
+	create,
+	close,
+	registry
 }

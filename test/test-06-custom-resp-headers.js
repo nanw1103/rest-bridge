@@ -1,8 +1,5 @@
 const fvt = require('./fvt.js')
 const rbcall = require('../shared/rbcall.js')
-const {log, error} = require('../shared/log.js')()
-
-const basicCases = require('./basic-cases.js')()
 const hubConfig = require('./defaultHubConfig.js')
 const connectorConfig = require('./defaultConnectorConfig.js')
 
@@ -15,7 +12,7 @@ fvt(hubConfig, connectorConfig, async () => {
 	let ret = await rbcall('http://localhost/hello', 'demoKey')
 
 	//console.log(ret.headers)
-	
+
 	return ret.headers['access-control-allow-origin'] === '*'
 		&& ret.headers['x-test-custom'] === 'ice wind dale'
 })

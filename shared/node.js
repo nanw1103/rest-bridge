@@ -20,7 +20,7 @@ Object.defineProperties(inst, {
 		}
 	},
 	short: {
-		value: function() {	
+		value: function() {
 			return inst.id + '/' + String(inst.name).padEnd(6, ' ')
 		}
 	}

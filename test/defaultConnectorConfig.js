@@ -3,6 +3,6 @@ module.exports = {
 	info: {
 		key: 'demoKey',
 		id: 'demoConnector'
-	},	
+	},
 	target: 'http://localhost:10762'
 }

@@ -1,8 +1,18 @@
-const {log, error} = require('../shared/log.js')()
+const {log} = require('../shared/log.js')()
 const thisNode = require('../shared/node.js')
 const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')
 
+const override = {
+	findConnection: findConnection,
+}
+
+let nodes
+function useNodeQuery(addresses) {
+	nodes = addresses
+	log('Using node-query registry:', nodes)
+	Object.assign(this, override)
+}
 
 async function findConnection(k) {
 	let conn = this._connectionCache.get(k)
@@ -26,16 +36,16 @@ function _peerCall(peer, url) {
 				reject()
 				return
 			}
-			
+
 			if (response.headers[constants.headers.HUB_INFO] === thisNode.short().trim()) {
 				setImmediate(() => {
 					log('Removing self from peer list:', peer)
-					nodes.splice(nodes.indexOf(peer), 1)					
+					nodes.splice(nodes.indexOf(peer), 1)
 				})
 				reject()
 				return
 			}
-			
+
 			let buf = Buffer.concat(response.chunks)
 			let text = buf.toString('utf8')
 			try {
@@ -44,19 +54,18 @@ function _peerCall(peer, url) {
 				reject(e)
 			}
 		})
-	})	
+	})
 }
 
-async function _findConnectionFromPeers(k) {	
-	
+async function _findConnectionFromPeers(k) {
 	return new Promise((resolve, reject) => {
 		let failure = 0
 		function failOne() {
 			if (++failure === nodes.length)
 				reject()
 		}
-		
-		for (let url of nodes) {			
+
+		for (let url of nodes) {
 			_peerCall(url, `/rest-bridge/connectors/${k}`).then(ret => {
 				if (ret.info) {
 					resolve({
@@ -72,15 +81,5 @@ async function _findConnectionFromPeers(k) {
 	})
 }
 
-const override = {
-	findConnection: findConnection,
-}
-
-let nodes
-function useNodeQuery(addresses) {
-	nodes = addresses
-	log('Using node-query registry:', nodes)
-	Object.assign(this, override)
-}
 
 module.exports = useNodeQuery

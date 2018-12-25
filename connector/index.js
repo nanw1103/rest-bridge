@@ -22,7 +22,7 @@ function parseRequestMessage(text) {
 		log('Error parsing req', e.toString())
 		return
 	}
-	
+
 	let seq = req.headers[constants.headers.SEQ]
 	if (!seq) {
 		log('Missing seq header')
@@ -67,22 +67,28 @@ const defaultOptions = {
 	//headers: {}
 }
 
-function startConnector(options) {
+function start(options) {
 
 	log('Starting connector', JSON.stringify(options.info))
 	log('Connecting to hub', options.hub)
 
 	let events = new EventEmitter
-	
+
 	//log('Starting connector to', options.hub)
 	closed = false
-	
+
 	let headers = prepareHeaders(options.info)
 	let matchRoute = routeMatcherFactory(options)
-	
+
 	let wsOptions = Object.assign({}, defaultOptions, options)
 	wsOptions.headers = headers
-	
+
+
+	const initialDelay = 1000
+	const maxDelay = 300 * 1000
+	let restartDelay = initialDelay
+	let restartTimer
+
 	function createClient() {
 		ws = new WebSocket(options.hub + '/rest-bridge/connect', 'binary', wsOptions).on('open', () => {
 			//log('ws open')
@@ -95,10 +101,10 @@ function startConnector(options) {
 				process.exit(constants.WS_SERVER_CMD_QUIT)
 				return
 			}
-			
+
 			if (code === constants.WS_AUTH_FAILURE)
 				restartDelay = maxDelay
-			
+
 			restart()
 		}).on('error', e => {
 			log('ws error:', e.toString())
@@ -127,18 +133,18 @@ function startConnector(options) {
 				setImmediate(restart)
 				return
 			}
-			
+
 			let target = matchRoute(req.url)
 			if (!target) {
 				sendError('No matching route', req.seq)
 				return
 			}
-			
+
 			removeRbHeaders(req.headers)
-			
+
 			if (options.verbose)
 				log(`#${req.seq} --> ${target}${req.url}`)
-			
+
 			rawHttp.doHttpCall(target, req, callback)
 
 			function callback(err, respObj) {
@@ -146,7 +152,7 @@ function startConnector(options) {
 					sendError('Connector error: ' + err, req.seq)
 					return
 				}
-				
+
 				respObj.headers[constants.headers.SEQ_RESP] = req.seq
 				//if (respObj.chunks.length > 0)
 				//	respObj.headers[constants.headers.CHUNKS] = respObj.chunks.length
@@ -155,23 +161,23 @@ function startConnector(options) {
 				let chunks = respObj.chunks
 				for (let chunk of chunks)
 					totalLength += chunk.length
-				
-				
+
+
 				let headerText = rawHttp.resToHead(respObj)
-				//console.log('header len', headerText.length, 'body len', totalLength)				
+				//console.log('header len', headerText.length, 'body len', totalLength)
 				let headerBuf = Buffer.from(headerText, 'utf8')
 				totalLength += headerBuf.length
 				chunks.unshift(headerBuf)
-				
+
 				let lenBuf = Buffer.alloc(8)
 				let headerEnd = lenBuf.length + headerBuf.length
 				lenBuf.writeInt32LE(headerEnd)
 				chunks.unshift(lenBuf)
 				totalLength += lenBuf.length
-								
+
 				if (options.verbose)
 					log(`#${req.seq} <-- ${totalLength}`)
-				
+
 				let wholeBuf = Buffer.concat(chunks, totalLength)
 				try {
 					ws.send(wholeBuf)
@@ -190,15 +196,15 @@ function startConnector(options) {
 		}
 	}
 
-			
+
 	function sendError(msg, seq) {
 		let headers = {}
 		headers[constants.headers.SEQ_RESP] = seq
 		let text = rawHttp.response(503, msg, headers)
-		
+
 		if (options.verbose)
 			log(`#${seq} <-- Error: ${msg}`)
-		
+
 		safeWsCall('send', text)
 	}
 
@@ -218,23 +224,19 @@ function startConnector(options) {
 		heartbeatTimer = setInterval(task, interval)
 	}
 
-	const initialDelay = 1000
-	const maxDelay = 300 * 1000
-	let restartDelay = initialDelay	
-	let restartTimer
 	function restart() {
 		if (ws)
 			ws.terminate()
-		
+
 		clearInterval(heartbeatTimer)
-		
+
 		events.emit('disconnected')
-		
+
 		if (closed) {
 			log('Closed.')
 			return
 		}
-		
+
 		restartDelay *= 2
 		if (restartDelay > maxDelay)
 			restartDelay = maxDelay
@@ -242,9 +244,9 @@ function startConnector(options) {
 		clearTimeout(restartTimer)
 		restartTimer = setTimeout(createClient, restartDelay)
 	}
-	
+
 	createClient()
-	
+
 	return events
 }
 
@@ -263,6 +265,6 @@ function close() {
 }
 
 module.exports = {
-	start: startConnector,
-	close: close
+	start,
+	close
 }

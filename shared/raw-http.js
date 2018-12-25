@@ -3,7 +3,7 @@ const http = require('http')
 const https = require('https')
 
 function doHttpCall(baseUrl, req, callback) {
-	
+
 	let target = url.parse(baseUrl)
 
 	var options = {
@@ -59,7 +59,7 @@ function response(code, text, headers, body) {
 			headers = lowerHeaders
 		}
 	}
-	
+
 	if (body) {
 		let type = typeof body
 		if (type === 'object') {
@@ -69,7 +69,7 @@ function response(code, text, headers, body) {
 			throw new Error('Invalid body type:', type)
 		headers['content-length'] = Buffer.byteLength(body)
 	}
-	
+
 	if (headers) {
 		for (let k in headers) {
 			msg += k + ':' + headers[k] + '\n'
@@ -92,12 +92,12 @@ function insertHeader(text, key, value) {
 
 function getHeader(text, key) {
 	let start = text.indexOf('\n') + 1
-	
+
 	do {
 		let end = text.indexOf('\n', start)
 		if (end === start || end < 0)
 			return
-		
+
 		let sep = text.indexOf(':', start)
 		if (sep < 0 || sep > end)
 			return
@@ -111,12 +111,12 @@ function getHeader(text, key) {
 
 function removeHeader(text, key) {
 	let start = text.indexOf('\n') + 1
-	
+
 	do {
 		let end = text.indexOf('\n', start)
 		if (end === start || end < 0)
 			return {text: text}
-		
+
 		let sep = text.indexOf(':', start)
 		if (sep < 0 || sep > end)
 			return {text: text}
@@ -137,18 +137,18 @@ function parseReq(data) {
 		headers: {},
 		body: null
 	}
-	
+
 	let pathStart = data.indexOf(' ')
 	ret.method = data.substring(0, pathStart)
 	++pathStart
 	let pathEnd = data.indexOf(' ', pathStart)
 	ret.url = data.substring(pathStart, pathEnd)
-	
+
 	let lineEnd = data.indexOf('\n', pathEnd)
 	let lineStart = lineEnd + 1
 	while (1) {
 		lineEnd = data.indexOf('\n', lineStart)
-		let line = data.substring(lineStart, lineEnd)	
+		let line = data.substring(lineStart, lineEnd)
 		if (line.length === 0)
 			//end of header
 			break
@@ -170,19 +170,19 @@ function parseResp(text) {
 		headers: {},
 		body: ''
 	}
-	
+
 	let lineEnd = text.indexOf('\n')
 	let firstLine = text.substring(0, lineEnd)
-	
+
 	let start = firstLine.indexOf(' ')
 	ret.httpVersion = firstLine.substring(5, start)
 
 	++start
-	let end = text.indexOf(' ', start)	
+	let end = text.indexOf(' ', start)
 	ret.statusCode = Number.parseInt(text.substring(start, end))
-	
-	ret.statusMessage = firstLine.substring(end + 1, lineEnd)	
-	
+
+	ret.statusMessage = firstLine.substring(end + 1, lineEnd)
+
 	while (1) {
 		let lineStart = lineEnd + 1
 		lineEnd = text.indexOf('\n', lineStart)
@@ -221,7 +221,7 @@ function resToHead(res) {
 
 function reqToText(req) {
 	let text = (req.method || 'GET') + ' ' + req.url + ' HTTP/' + (req.httpVersion || '1.1') + '\n'
-	
+
 	for (let k in req.headers)
 		text += k + ':' + req.headers[k] + '\n'
 	text += '\n'
@@ -235,19 +235,19 @@ function reqToText(req) {
 }
 
 module.exports = {
-	response: response,
+	response,
 
-	removeHeader: removeHeader,
-	getHeader: getHeader,
-	insertHeader: insertHeader,
+	removeHeader,
+	getHeader,
+	insertHeader,
 
-	parseReq: parseReq,
-	parseResp: parseResp,
+	parseReq,
+	parseResp,
 
-	reqToText: reqToText,
-	resToText: resToText,
+	reqToText,
+	resToText,
 
-	resToHead: resToHead,
-	
-	doHttpCall: doHttpCall
+	resToHead,
+
+	doHttpCall
 }

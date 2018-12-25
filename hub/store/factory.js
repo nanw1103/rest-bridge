@@ -23,7 +23,7 @@ function create(config) {
 
 	if (typeof config === 'function') {
 		return create(config())
-	} 
+	}
 
 	if (typeof config !== 'string') {
 		throw new Error('Unknown store configuration: ' + config)
@@ -58,14 +58,14 @@ function create(config) {
 		return new CachedStore(new FsStore(param), {
 			size: 2000,
 			expire: 5000
-		})	
+		})
 	}
-		
+
 	default:
 		throw new Error('Unsupported store: ' + config)
 	}
 }
 
 module.exports = {
-	create: create
+	create
 }

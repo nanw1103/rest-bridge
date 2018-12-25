@@ -24,16 +24,16 @@ async function createTestMasterImpl() {
 	//hub
 	createHub()
 	await delay(2000)
-	
+
 	//connectors
 	clusterConnector.start().catch(panic)
 	await delay(2000)
-	
+
 	return await clusterClient.start()
 }
 
 createTestMasterImpl().then(() => {
-	log('SUCCESS')	
+	log('SUCCESS')
 	process.exit(0)
 }).catch(e => {
 	log('FAILED:', e)

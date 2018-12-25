@@ -12,14 +12,14 @@ class FsStore {
 		this.repo = repo
 		this.options = Object.assign({}, defaultOptions, options)
 	}
-	
+
 	set(k, obj) {
-		
+
 		if (this.options.json)
 			obj = JSON.stringify(obj, null, 4)
-		
+
 		let path = this.repo + '/' + k
-		
+
 		return new Promise((resolve, reject) => {
 			let failure = 0
 			const writeImpl = () => {
@@ -38,7 +38,7 @@ class FsStore {
 			writeImpl()
 		})
 	}
-	
+
 	get(k) {
 		let path = this.repo + '/' + k
 		//require('../shared/log.js')().log('store get', path)
@@ -47,7 +47,7 @@ class FsStore {
 			fs.readFile(path, 'utf8', (err, data) => {
 				if (err)
 					return reject(err)
-				
+
 				if (this.options.json) {
 					try {
 						let obj = JSON.parse(data)
@@ -61,7 +61,7 @@ class FsStore {
 			})
 		})
 	}
-	
+
 	list(path) {
 		path = this.repo + '/' + path
 		return new Promise((resolve, reject) => {
@@ -72,14 +72,14 @@ class FsStore {
 			})
 		})
 	}
-	
+
 	mkdir(path) {
 		return new Promise((resolve, reject) => {
 			let cb = err => err ? reject(err) : resolve()
 			fs.mkdir(this.repo + '/' + path, cb)
-		})		
+		})
 	}
-	
+
 	has(k) {
 		let path = this.repo + '/' + k
 		return new Promise(resolve => {
@@ -95,7 +95,7 @@ class FsStore {
 			fs.unlink(path, cb)
 		})
 	}
-	
+
 	async init(paths) {
 		const md = async name => {
 			let exists = await this.has(name)
@@ -103,7 +103,7 @@ class FsStore {
 				return
 			return this.mkdir(name)
 		}
-		
+
 		await md('')
 		for (let p of paths) {
 			await md(p)
