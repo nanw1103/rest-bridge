@@ -1,43 +1,131 @@
 module.exports = {
-	"env": {
-		"es6": true,
-		"node": true
+	env: {
+		es6: true,
+		node: true
 	},
-	"extends": "eslint:recommended",
-	"parserOptions": {
-		"sourceType": "module",
-		"ecmaVersion": 8,
-		"ecmaFeatures": {
+	extends: 'eslint:recommended',
+	parserOptions: {
+		sourceType: 'module',
+		ecmaVersion: 2018,
+		ecmaFeatures: {
 		}
 	},
-	"rules": {
-		"indent": [
-			"error",
-			"tab"
-		],
-		"quotes": [
-			"error",
-			"single"
-		],
-		"semi": [
-			"error",
-			"never"
-		],
-		"no-console": 0,
-		"no-inner-declarations": 0,
-		"no-empty": 0,
-		"no-constant-condition": 0,
-		"no-trailing-spaces": [
-			"error"
-		],
-		"no-shadow": ["warn", { "builtinGlobals": true, "hoist": "all", "allow": [] }],
-		"no-use-before-define": ["error", { "functions": false, "classes": false }],
-		"no-unused-vars": ["warn", { "vars": "all", "args": "after-used", "ignoreRestSiblings": false }],
-		"no-async-promise-executor": ["error"],
-		"no-extra-parens": ["error"],
-		"no-misleading-character-class": ["error"],
-		"no-prototype-builtins": ["error"],
-		"no-template-curly-in-string": 0,
-		"require-atomic-updates": ["error"],
+	rules: {
+		// Possible Errors
+		'no-async-promise-executor': 'error',
+		'no-console': 0,
+		'no-constant-condition': 0,
+		'no-empty': 0,
+		'no-extra-parens': 0,
+		'no-inner-declarations': 0,
+		'no-misleading-character-class': 'error',
+		'no-prototype-builtins': 'error',
+		'no-template-curly-in-string': 0,
+		'require-atomic-updates': 'error',
+
+		// Best Practices
+		'class-methods-use-this': 0,
+		'complexity': ['error', 20],
+		'default-case': ['error', { commentPattern: 'no\\sdefault' }],
+		'dot-location': ['error', 'property'],
+		'dot-notation': ['error', { allowKeywords: true }],
+		'eqeqeq': ['error', 'always'],
+		'no-alert': 'error',
+		'no-caller': 'error',
+		'no-extend-native': 'error',
+		'no-extra-bind': 'error',
+		'no-extra-label': 'error',
+		'no-floating-decimal': 'error',
+		'no-implicit-coercion': ['error', { boolean: true, number: true, string: true, allow: ['!!'] }],
+		'no-implied-eval': 'error',
+		'no-invalid-this': 0,
+		'no-iterator': 'error',
+		'no-labels': 'error',
+		'no-loop-func': 'error',
+		'no-multi-spaces': 'error',
+		'no-new': 'error',
+		'no-new-func': 'error',
+		'no-new-wrappers': 'error',
+		'no-octal-escape': 'error',
+		'no-param-reassign': 0,
+		'no-proto': 'error',
+		'no-return-await': 'error',
+		'no-script-url': 'error',
+		'no-self-compare': 'error',
+		'no-sequences': 'error',
+		'no-useless-call': 'error',
+		'no-useless-catch': 'error',
+		'no-useless-concat': 'error',
+		'no-useless-return': 'error',
+		'no-void': 'error',
+		'no-warning-comments': 'warn',
+		'require-await': 0,
+		'wrap-iife': ['error', 'inside'],
+		'yoda': ['error', 'never', { exceptRange: true }],
+
+		// Variables
+		'init-declarations': 0,
+		'no-delete-var': 'error',
+		'no-label-var': 'error',
+		'no-restricted-globals': 0,
+		'no-shadow': ['warn', { builtinGlobals: true, hoist: 'all', allow: [] }],
+		'no-shadow-restricted-names': 'error',
+		'no-undef': 'error',
+		'no-undef-init': 'error',
+		'no-undefined': 0,
+		'no-unused-vars': ['warn', { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_', ignoreRestSiblings: false }],
+		'no-use-before-define': ['error', { functions: false, classes: false }],
+
+		// Node.js and CommonJS
+		'callback-return': ['warn', ['callback', 'cb', 'next']],
+		'global-require': 0,
+		'handle-callback-err': ['error', '^(err|error)$'],
+		'no-buffer-constructor': 'error',
+		'no-mixed-requires': ['error', { grouping: false, allowCall: true }],
+		'no-new-require': 'error',
+		'no-path-concat': 'warn',
+		'no-process-env': 0,
+		'no-process-exit': 0,
+		'no-restricted-modules': 0,
+		'no-sync': 0,
+
+		// Stylistic Issues
+		'array-bracket-spacing': ['warn', 'never', { singleValue: false, objectsInArrays: false, arraysInArrays: false }],
+		//"array-element-newline": ["warn", {"multiline": true, "minItems": 2}],
+		'block-spacing': 'error',
+		'brace-style': ['error', '1tbs', { allowSingleLine: true }],
+		'computed-property-spacing': ['error', 'never'],
+		'indent': ['error', 'tab'],
+		'no-array-constructor': 'error',
+		'no-lonely-if': 'warn',
+		'no-multi-assign': 0,
+		'no-multiple-empty-lines': ['error', { max: 2, maxBOF: 0, maxEOF: 0 }],
+		'no-negated-condition': 'warn',
+		'no-nested-ternary': 'warn',
+		'no-new-object': 'error',
+		'no-trailing-spaces': 'error',
+		'no-unneeded-ternary': 'error',
+		'no-whitespace-before-property': 'error',
+		//"object-curly-newline": ["error", {"multiline": true}],
+		'one-var-declaration-per-line': ['error', 'initializations'],
+		'operator-assignment': 'error',
+		'operator-linebreak': ['error', 'before'],
+		'padded-blocks': ['warn', { 'classes': 'never', 'switches': 'never' }],
+		'prefer-object-spread': 'warn',
+		'quotes': ['error', 'single'],
+		'quote-props': ['error', 'as-needed'],
+		'semi': ['error', 'never', { beforeStatementContinuationChars: 'always' }],
+
+		// ECMAScript 6
+		'no-duplicate-imports': 'error',
+		'no-useless-computed-key': 'error',
+		'no-useless-constructor': 'error',
+		'no-useless-rename': 'error',
+		'no-var': 'error',
+		'object-shorthand': 'error',
+		'prefer-numeric-literals': 'error',
+		'prefer-rest-params': 0,
+		'prefer-spread': 'error',
+		'rest-spread-spacing': 'error',
 	}
 }
