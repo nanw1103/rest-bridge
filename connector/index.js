@@ -41,7 +41,7 @@ function routeMatcherFactory(options) {
 		if (typeof meta === 'string') {
 			r = { target: meta }
 		} else {
-			r = Object.assign({}, meta)
+			r = { ...meta}
 		}
 		r.pattern = new RegExp(k)
 		routes.push(r)
@@ -80,7 +80,7 @@ function start(options) {
 	let headers = prepareHeaders(options.info)
 	let matchRoute = routeMatcherFactory(options)
 
-	let wsOptions = Object.assign({}, defaultOptions, options)
+	let wsOptions = { ...defaultOptions, ...options}
 	wsOptions.headers = headers
 
 
@@ -88,6 +88,7 @@ function start(options) {
 	const maxDelay = 300 * 1000
 	let restartDelay = initialDelay
 	let restartTimer
+	let lastHeatbeatSuccessTime
 
 	function createClient() {
 		ws = new WebSocket(options.hub + '/rest-bridge/connect', 'binary', wsOptions).on('open', () => {
@@ -112,8 +113,9 @@ function start(options) {
 			events.emit('failure', e)
 		//}).on('ping', data => {
 		//	log('ws ping', data.toString())
-		//}).on('pong', () => {
-		//	log('ws pong', data)
+		}).on('pong', () => {
+			lastHeatbeatSuccessTime = Date.now()
+			//log('ws pong')
 		}).on('unexpected-response', () => {
 			log('ws unexpected-response')
 			ws.terminate()
@@ -219,8 +221,16 @@ function start(options) {
 
 	let heartbeatTimer
 	function startHeartbeat() {
-		const task = () => safeWsCall('ping')
 		let interval = options.heartbeatInterval || constants.HEARTBEAT_INTERVAL
+		const task = () => {
+			if (Date.now() - lastHeatbeatSuccessTime > interval * 2 + 1000) {
+				//broken link
+				restart()
+				return
+			}
+			safeWsCall('ping')
+		}
+
 		heartbeatTimer = setInterval(task, interval)
 	}
 
