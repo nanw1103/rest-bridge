@@ -222,6 +222,7 @@ function start(options) {
 	let heartbeatTimer
 	function startHeartbeat() {
 		let interval = options.heartbeatInterval || constants.HEARTBEAT_INTERVAL
+		lastHeatbeatSuccessTime = Date.now()
 		const task = () => {
 			if (Date.now() - lastHeatbeatSuccessTime > interval * 2 + 1000) {
 				//broken link
