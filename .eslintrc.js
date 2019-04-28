@@ -75,7 +75,7 @@ module.exports = {
 		'no-undef-init': 'error',
 		'no-undefined': 0,
 		'no-unused-vars': ['warn', { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_', ignoreRestSiblings: false }],
-		'no-use-before-define': ['error', { functions: false, classes: false }],
+		'no-use-before-define': ['warn', { functions: false, classes: false }],
 
 		// Node.js and CommonJS
 		'callback-return': ['warn', ['callback', 'cb', 'next']],

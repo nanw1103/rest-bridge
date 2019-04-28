@@ -2,6 +2,7 @@ const os = require('os')
 const connect = require('connect')
 const bodyParser = require('body-parser')
 const http = require('http')
+const https = require('https')
 
 const {log, error} = require('../shared/log.js')()
 
@@ -25,7 +26,12 @@ let clientServer
 let connectorServer
 
 function create(options) {
-
+	function createServer(app) {
+		if (options.tls)
+			return https.createServer(options.tls, app)
+		return http.createServer(app)
+	}	
+	
 	if (options.id)
 		thisNode.id = options.id
 	let port = Number.parseInt(options.port)
@@ -63,7 +69,7 @@ function create(options) {
 	if (_reusedServer) {
 		managementServer = _reusedServer
 	} else {
-		managementServer = http.createServer(managementApp)
+		managementServer = createServer(managementApp)
 		managementServer.listen(options.management.port, options.management.host, err => {
 			if (err) {
 				error('Error starting management server', err)
@@ -85,7 +91,7 @@ function create(options) {
 		}))
 		clientSvc.init(clientApp, options)
 		clientApp.use(onError)
-		clientServer = http.createServer(clientApp)
+		clientServer = createServer(clientApp)
 		clientServer.listen(options.port, options.clientHost, err => {
 			if (err) {
 				error('Error starting client server', err)
@@ -103,7 +109,7 @@ function create(options) {
 	} else if (options.connector.port === options.management.port) {
 		connectorServer = managementServer
 	} else {
-		connectorServer = http.createServer()
+		connectorServer = createServer()
 		connectorServer.listen(options.connector.port, options.connector.host, err => {
 			if (err) {
 				error('Error starting connector server', err)

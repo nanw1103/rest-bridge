@@ -23,6 +23,12 @@ module.exports = {
 	*/
 	//baseContext: '/'
 
+	/*
+		TLS configuration for client interface. A standard NodeJs https lib TLS option object,
+		passed directly to TLS layer. See tls.createServer().
+	*/
+	//tls: null
+	
 	//-------------------------------------------------------------------------------------
 	//	Connector interface, which accepts connections from connectors.
 	//	By default, connector interface is the same as client interface.
