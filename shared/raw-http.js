@@ -66,14 +66,12 @@ function response(code, text, headers, body) {
 			body = JSON.stringify(body)
 			headers['content-type'] = 'application/json'
 		} else if (type !== 'string')
-			throw new Error('Invalid body type:', type)
+			throw new Error('Invalid body type: ' + type)
 		headers['content-length'] = Buffer.byteLength(body)
 	}
 
-	if (headers) {
-		for (let k in headers) {
-			msg += k + ':' + headers[k] + '\n'
-		}
+	for (let k in headers) {
+		msg += k + ':' + headers[k] + '\n'
 	}
 
 	msg += '\n'

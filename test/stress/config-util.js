@@ -10,7 +10,7 @@ function loadDefault(string) {
 	function override(name, value, errorOnMissing) {
 		if (!(name in defaultConfig)) {
 			if (errorOnMissing)
-				throw new Error('Key is not in default config:', name)
+				throw new Error('Key is not in default config: ' + name)
 			return
 		}
 

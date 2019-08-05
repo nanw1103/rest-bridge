@@ -6,7 +6,6 @@ const registry = require('./registry.js')
 const connectorSvc = require('./connector-svc.js')
 const makeContext = require('./context-util.js').makeContext
 
-
 const stat = {
 	incoming: 0,
 	missingConnectorKey: 0,
@@ -193,12 +192,12 @@ function addHubInfoHeader(req, res, next) {
 	next()
 }
 
-function init(app, options) {
+function init(app, options = {}) {
 
 	app.use(addHubInfoHeader)
 
 	let respHeaders
-	if (options && options.auth)
+	if (options.auth)
 		respHeaders = options.auth.responseHeaders
 	if (respHeaders) {
 		app.use((req, res, next) => {

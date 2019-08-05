@@ -12,7 +12,7 @@ function isStoreClass(obj) {
 
 function create(config) {
 
-	if (!config === undefined)
+	if (config === undefined)
 		throw new Error('Missing store configuration')
 
 	if (typeof config === 'object') {

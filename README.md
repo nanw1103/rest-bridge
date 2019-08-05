@@ -1,8 +1,9 @@
 # rest-bridge
 Expose REST service in private network to public network, via connector (in private network) and hub (public service).
 
-![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-overview.png?raw=true)
+[![DeepScan grade](https://deepscan.io/api/teams/4922/projects/6710/branches/57236/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=4922&pid=6710&bid=57236)
 
+![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-overview.png?raw=true)
 
 # Features
 * Firewall friendly: all http/ws

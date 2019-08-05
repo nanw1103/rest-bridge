@@ -73,10 +73,6 @@ class ShardStore {
 	}
 }
 
-function _sendError(res, err, headers) {
-	_sendJSON(res, {error: err.toString()}, headers)
-}
-
 function _sendJSON(res, obj, additionalHeaders) {
 	let text = JSON.stringify(obj, null, 4)
 	let headers = { ...additionalHeaders, 'content-type': 'application/json',
