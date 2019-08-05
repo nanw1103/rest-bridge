@@ -28,7 +28,7 @@ module.exports = {
 		passed directly to TLS layer. See tls.createServer().
 	*/
 	//tls: null
-	
+
 	//-------------------------------------------------------------------------------------
 	//	Connector interface, which accepts connections from connectors.
 	//	By default, connector interface is the same as client interface.

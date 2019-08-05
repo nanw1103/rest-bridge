@@ -123,20 +123,20 @@ function thisNodeInfo() {
 }
 
 const registry = {
-	init: init,
-	configStore: configStore,
-	stat: stat,
-	list: list,
-	get: get,
-	register: register,
-	remove: remove,
+	init,
+	configStore,
+	stat,
+	list,
+	get,
+	register,
+	remove,
 
-	onConnect: onConnect,
-	onDisconnect: onDisconnect,
-	findConnection: findConnection,
-	removeConnectionCache: removeConnectionCache,
+	onConnect,
+	onDisconnect,
+	findConnection,
+	removeConnectionCache,
 
-	useNodeQuery: useNodeQuery
+	useNodeQuery
 }
 
 Object.defineProperty(registry, '_connectionCache', { value: connectionCache })

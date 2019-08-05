@@ -64,7 +64,6 @@ function removeRbHeaders(headers) {
 }
 
 class RemoteConnector {
-
 	constructor(ws, info) {
 		Object.defineProperties(this, {
 			ws: {
@@ -282,7 +281,7 @@ function initConnection(ws, req, options) {
 				ws.terminate()
 			} else {
 				log('Connector accepted:', clientInfo.id)
-				new RemoteConnector(ws, clientInfo)
+				new RemoteConnector(ws, clientInfo)	// eslint-disable-line no-new
 			}
 		})
 	}).catch(e => {
@@ -326,7 +325,7 @@ function init(server, options) {
 
 	let ctx = makeContext(options.baseContext, '/rest-bridge/connect')
 	new WebSocket.Server({
-		server: server,
+		server,
 		path: ctx,
 		verifyClient: verifyClientFn
 	}).on('connection', (ws, req) => initConnection(ws, req, options))

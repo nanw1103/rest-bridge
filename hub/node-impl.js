@@ -14,7 +14,7 @@ const clientSvc = require('./client-svc.js')
 const statSvc = require('./stat-svc.js')
 const registry = require('./registry.js')
 
-function onError(err, req, res, next) {
+function onError(err, req, res, _next) {
 	let msg = err.toString()
 	log('err~', msg)
 	res.writeHead(503)
@@ -30,8 +30,8 @@ function create(options) {
 		if (options.tls)
 			return https.createServer(options.tls, app)
 		return http.createServer(app)
-	}	
-	
+	}
+
 	if (options.id)
 		thisNode.id = options.id
 	let port = Number.parseInt(options.port)
@@ -138,7 +138,7 @@ function getIPs() {
 	Object.keys(ifaces).forEach(ifname => {
 		let ips = []
 		ifaces[ifname].forEach(iface => {
-			if ('IPv4' !== iface.family || iface.internal !== false) {
+			if (iface.family !== 'IPv4' || iface.internal !== false) {
 				return	// skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
 			}
 			ips.push(iface.address)

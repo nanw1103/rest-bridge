@@ -5,6 +5,6 @@ const hubConfig = require('./defaultHubConfig.js')
 const connectorConfig = require('./defaultConnectorConfig.js')
 
 hubConfig.baseContext = '/custom/path'
-connectorConfig.hub = 'ws://localhost:81/custom/path',
+connectorConfig.hub = 'ws://localhost:81/custom/path'
 
 fvt(hubConfig, connectorConfig, basicCases)

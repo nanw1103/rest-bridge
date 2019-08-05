@@ -8,19 +8,19 @@ const inst = {
 	startTime: Date.now(),
 	id: Math.random().toString(36).slice(2).padEnd(12, '0'),
 	pid: process.pid,
-	index: index,
-	name: name
+	index,
+	name
 }
 
 Object.defineProperties(inst, {
 	format: {
-		value: function() {
+		value() {
 			inst.upTime = Date.now() - inst.startTime
-			return Object.assign({}, inst)
+			return { ...inst}
 		}
 	},
 	short: {
-		value: function() {
+		value() {
 			return inst.id + '/' + String(inst.name).padEnd(6, ' ')
 		}
 	}

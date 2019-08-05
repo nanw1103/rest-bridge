@@ -2,10 +2,10 @@ const clusterCall = require('cluster-call')
 
 function ChildStore(id) {
 	const obj = {
-		id: id
+		id
 	}
 	const handler = {
-		get: function(o, k) {
+		get(o, k) {
 			if (k in o)
 				return o[k]
 

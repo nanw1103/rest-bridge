@@ -1,3 +1,4 @@
+const path = require('path')
 const cluster = require('cluster')
 const { log } = require('../../shared/log.js')()
 const config = require('./config.js')
@@ -48,10 +49,10 @@ function monkey() {
 	setTimeout(monkey, next)
 }
 
-function start(module, numNodes) {
+function start(clusterModule, numNodes) {
 
-	log('launch-cluster', module)
-	cluster.setupMaster({ exec: __dirname + '/' + module })
+	log('launch-cluster', clusterModule)
+	cluster.setupMaster({ exec: path.join(__dirname, clusterModule) })
 
 
 	let exitCodes = new Array(numNodes)

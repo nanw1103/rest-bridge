@@ -1,7 +1,8 @@
 module.exports = {
 	env: {
 		es6: true,
-		node: true
+		node: true,
+		mocha: true
 	},
 	extends: 'eslint:recommended',
 	parserOptions: {
@@ -26,7 +27,7 @@ module.exports = {
 
 		// Best Practices
 		'class-methods-use-this': 0,
-		'complexity': ['error', 20],
+		'complexity': ['error', 24],
 		'default-case': ['error', { commentPattern: 'no\\sdefault' }],
 		'dot-location': ['error', 'property'],
 		'dot-notation': ['error', { allowKeywords: true }],
@@ -74,7 +75,7 @@ module.exports = {
 		'no-undef': 'error',
 		'no-undef-init': 'error',
 		'no-undefined': 0,
-		'no-unused-vars': ['warn', { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_', ignoreRestSiblings: false }],
+		'no-unused-vars': ['warn', { vars: 'all', varsIgnorePattern: '^_|log|warn|error', args: 'after-used', argsIgnorePattern: '^_', ignoreRestSiblings: false }],
 		'no-use-before-define': ['warn', { functions: false, classes: false }],
 
 		// Node.js and CommonJS
@@ -114,7 +115,7 @@ module.exports = {
 		'padded-blocks': ['warn', { 'classes': 'never', 'switches': 'never' }],
 		'prefer-object-spread': 'warn',
 		'quotes': ['error', 'single'],
-		'quote-props': ['error', 'as-needed'],
+		'quote-props': ['error', 'consistent-as-needed'],
 		'semi': ['error', 'never', { beforeStatementContinuationChars: 'always' }],
 
 		// ECMAScript 6

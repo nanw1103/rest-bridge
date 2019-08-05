@@ -1,5 +1,6 @@
+const path = require('path')
 const url = require('url')
-const config = require(__dirname + '/config-util.js')(__dirname + '/_settings.js')
+const config = require('./config-util.js')(path.join(__dirname, '_settings.js'))
 
 function parseEndpoint(str) {
 	if (str[str.length -1] !== '/')
@@ -22,7 +23,7 @@ function parseEndpoint(str) {
 
 	return {
 		host: parsed.hostname,
-		port: port
+		port
 	}
 }
 
@@ -35,5 +36,3 @@ config.targetHost = target.host
 config.targetPort = target.port
 
 module.exports = config
-
-

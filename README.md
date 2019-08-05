@@ -205,3 +205,10 @@ The storage is used for two purposes:
 2. Used for internal routing in multi-machine cluster environment. For each node, upon connector connection, a record consists of node info and connector info will be created in the store. Upon a call from client, the receiving node will first search itself for the connected connector. If the connection is not on the node itself, the storage is searched to identify the node holding the connection. Then the current node will forward the http request to the target node.
 
 If there are more than one machine/container, an external shared storage is a must. If there is only one machine (even it has a nodejs cluster), external shared storage is not needed and memory based (or cluster RPC based) internal storage can be used.
+
+
+# Test
+```javascript
+npm i
+npm test
+```

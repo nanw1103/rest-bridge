@@ -200,9 +200,9 @@ function start(options) {
 
 
 	function sendError(msg, seq) {
-		let headers = {}
-		headers[constants.headers.SEQ_RESP] = seq
-		let text = rawHttp.response(503, msg, headers)
+		let text = rawHttp.response(503, msg, {
+			[constants.headers.SEQ_RESP]: seq
+		})
 
 		if (options.verbose)
 			log(`#${seq} <-- Error: ${msg}`)

@@ -25,7 +25,7 @@ app.use('/test', function(req, res) {
 	}
 })
 
-app.use(function onerror(err, req, res, next) {
+app.use(function onerror(err, _req, _res, _next) {
 	let msg
 	if (typeof err === 'object' && !(err instanceof Error))
 		msg = Object.keys(err)

@@ -4,7 +4,7 @@ const constants = require('../shared/constants.js')
 const rawHttp = require('../shared/raw-http.js')
 
 const override = {
-	findConnection: findConnection,
+	findConnection,
 }
 
 let nodes
@@ -28,7 +28,7 @@ async function findConnection(k) {
 function _peerCall(peer, url) {
 	let req = {
 		method: 'GET',
-		url: url
+		url
 	}
 	return new Promise((resolve, reject) => {
 		rawHttp.doHttpCall(peer, req, (err, response) => {
@@ -70,7 +70,7 @@ async function _findConnectionFromPeers(k) {
 				if (ret.info) {
 					resolve({
 						node: {
-							url: url
+							url
 						}
 					})
 				} else {

@@ -1,7 +1,6 @@
 const MemStore = require('./mem-store.js')
 
 class ShardStore {
-
 	constructor(peers, connectSvr, httpClient) {
 		this.peers = peers
 		this.memStore = new MemStore
@@ -80,10 +79,8 @@ function _sendError(res, err, headers) {
 
 function _sendJSON(res, obj, additionalHeaders) {
 	let text = JSON.stringify(obj, null, 4)
-	let headers = Object.assign({}, additionalHeaders, {
-		'content-type': 'application/json',
-		'content-length': Buffer.byteLength(text),
-	})
+	let headers = { ...additionalHeaders, 'content-type': 'application/json',
+		'content-length': Buffer.byteLength(text),}
 	res.writeHead(200, headers)
 	res.end(text)
 }

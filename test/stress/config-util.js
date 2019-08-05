@@ -1,4 +1,3 @@
-
 function loadDefault(string) {
 	let defaultConfig = require(string)
 
@@ -6,7 +5,7 @@ function loadDefault(string) {
 	///////////////////////////////////////
 	//	Actual
 	///////////////////////////////////////
-	let actual = Object.assign({}, defaultConfig)
+	let actual = { ...defaultConfig}
 
 	function override(name, value, errorOnMissing) {
 		if (!(name in defaultConfig)) {

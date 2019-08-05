@@ -1,11 +1,12 @@
 //Trick for test: enforce local setting
 const fs = require('fs')
-fs.createReadStream(__dirname + '/settings-local.js')
-	.pipe(fs.createWriteStream(__dirname + '/_settings.js'));
+const path = require('path')
+fs.createReadStream(path.join(__dirname, 'settings-local.js'))
+	.pipe(fs.createWriteStream(path.join(__dirname, '_settings.js')));
 
 (async function() {
 
-	await test('basic', {
+	await testMod('basic', {
 		hub: 1,
 		connector: 1,
 		client: 1,
@@ -15,7 +16,7 @@ fs.createReadStream(__dirname + '/settings-local.js')
 		request: 10000
 	})
 
-	await test('internal forward', {
+	await testMod('internal forward', {
 		hub: 2,
 		connector: 1,
 		client: 1,
@@ -25,7 +26,7 @@ fs.createReadStream(__dirname + '/settings-local.js')
 		request: 10000
 	})
 
-	await test('large body and forward', {
+	await testMod('large body and forward', {
 		hub: 2,
 		connector: 1,
 		client: 1,
@@ -35,7 +36,7 @@ fs.createReadStream(__dirname + '/settings-local.js')
 		request: 200
 	})
 
-	await test('file store', {
+	await testMod('file store', {
 		hub: 2,
 		connector: 1,
 		client: 1,
@@ -45,7 +46,7 @@ fs.createReadStream(__dirname + '/settings-local.js')
 		request: 10000
 	})
 
-	await test('multiple nodes', {
+	await testMod('multiple nodes', {
 		hub: 3,
 		connector: 7,
 		client: 20,
@@ -61,7 +62,7 @@ fs.createReadStream(__dirname + '/settings-local.js')
 		console.error('Failed')
 })
 
-function test(name, options) {
+function testMod(name, options) {
 
 	console.log('------------------------------------------------------------------------------------------')
 	console.log(`Test [${name}]`, JSON.stringify(options))
@@ -80,7 +81,7 @@ function test(name, options) {
 
 	return new Promise((resolve, reject) => {
 		let onExit = code => code === 0 ? resolve() : reject()
-		fork(__dirname + '/impl.js')
+		fork(path.join(__dirname, 'impl.js'))
 			.on('exit', onExit)
 	})
 }

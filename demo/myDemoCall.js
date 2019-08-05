@@ -30,4 +30,3 @@ http.get(options, resp => {
 //Method 2 - Specify pairing key in request path.
 //This method requires a fixed base path to be added
 //http.get('http://localhost/rest-bridge-forward/<pairingKey>/hello')
-

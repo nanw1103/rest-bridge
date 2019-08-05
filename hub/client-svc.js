@@ -7,7 +7,6 @@ const connectorSvc = require('./connector-svc.js')
 const makeContext = require('./context-util.js').makeContext
 
 
-
 const stat = {
 	incoming: 0,
 	missingConnectorKey: 0,
@@ -64,10 +63,10 @@ function forwardToConnectorByHeaderKey(req, res) {
  * @param {Object} request
  * @return {Boolean}
  */
-function hasbody(req) {
-	return req.headers['transfer-encoding'] !== undefined ||
-		!isNaN(req.headers['content-length'])
-}
+//function hasbody(req) {
+//	return req.headers['transfer-encoding'] !== undefined
+//		|| !isNaN(req.headers['content-length'])
+//}
 
 function workaroundBodyparserLibIssue(req) {
 	//workaround body parser issue when using bodyParser.text.
@@ -89,9 +88,10 @@ function forwardImpl(k, req, res) {
 
 	let headers = req.headers
 	if (headers[rbheaders.FORWARDED]) {
-		let headers = {}
-		headers[rbheaders.NO_CONNECTOR] = 1
-		res.writeHead(503, 'No further redirection', headers)
+		let _headers = {
+			[rbheaders.NO_CONNECTOR]: 1
+		}
+		res.writeHead(503, 'No further redirection', _headers)
 		res.end()
 		stat.noFurtherRedirection++
 		return
@@ -106,8 +106,7 @@ function forwardImpl(k, req, res) {
 
 		if (!node || node.url === thisNode.url) {
 			registry.removeConnectionCache(k)
-			let headers = {}
-			res.writeHead(503, 'Connector not found', headers)
+			res.writeHead(503, 'Connector not found', {})
 			res.end()
 			stat.missingConnector++
 			return
@@ -147,20 +146,19 @@ function forwardImpl(k, req, res) {
 			return
 		}
 
-		let headers = result.headers
-		if (headers[rbheaders.NO_CONNECTOR]) {
+		if (result.headers[rbheaders.NO_CONNECTOR]) {
 			registry.removeConnectionCache(k)
-			delete headers[rbheaders.NO_CONNECTOR]
+			delete result.headers[rbheaders.NO_CONNECTOR]
 		}
 
 		appendHubInfoHeader(req, result)
 
 		//log('result.statusCode', result.statusCode)
-		//log('result.headers', headers)
+		//log('result.headers', result.headers)
 
 		//handle 'Invalid character in statusMessage'
 		try {
-			res.writeHead(result.statusCode, result.statusMessage, headers)
+			res.writeHead(result.statusCode, result.statusMessage, result.headers)
 			if (result.body) {
 				res.write(result.body)
 			} else if (result.chunks) {

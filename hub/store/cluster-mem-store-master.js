@@ -7,7 +7,7 @@ clusterCall.clusterMemStoreOp = async function(id, method, args) {
 	if (!store)
 		return Promise.reject('Store not found: ' + id)
 
-	return store[method].apply(store, args)
+	return store[method](...args)
 }
 
 class MasterStore extends MemStore {

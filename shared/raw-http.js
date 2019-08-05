@@ -6,7 +6,7 @@ function doHttpCall(baseUrl, req, callback) {
 
 	let target = url.parse(baseUrl)
 
-	var options = {
+	let options = {
 		hostname: target.hostname,
 		port: target.port,
 		path: req.url,
@@ -115,11 +115,11 @@ function removeHeader(text, key) {
 	do {
 		let end = text.indexOf('\n', start)
 		if (end === start || end < 0)
-			return {text: text}
+			return {text}
 
 		let sep = text.indexOf(':', start)
 		if (sep < 0 || sep > end)
-			return {text: text}
+			return {text}
 		let name = text.substring(start, sep)
 		if (name === key)
 			return {

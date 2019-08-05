@@ -11,4 +11,3 @@ clusterCall('master')
 		error(e)
 		process.exit(1)
 	})
-

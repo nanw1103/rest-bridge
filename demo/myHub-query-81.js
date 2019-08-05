@@ -15,5 +15,3 @@ hub.create(config).then(() => {
 		description: 'demo connector'
 	})
 }).catch(console.error)
-
-

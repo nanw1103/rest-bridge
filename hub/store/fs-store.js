@@ -7,10 +7,9 @@ const defaultOptions = {
 }
 
 class FsStore {
-
 	constructor(repo, options) {
 		this.repo = repo
-		this.options = Object.assign({}, defaultOptions, options)
+		this.options = { ...defaultOptions, ...options}
 	}
 
 	set(k, obj) {

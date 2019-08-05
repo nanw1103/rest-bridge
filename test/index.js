@@ -1,10 +1,12 @@
 const fork = require('child_process').fork
 const fs = require('fs')
+const path = require('path')
 const {error} = require('../shared/log.js')()
 
 function runFile(name) {
 	return new Promise((resolve, reject) => {
-		let child = fork(name)
+		let fileName = path.join(__dirname, name)
+		let child = fork(fileName)
 		child.on('exit', code => {
 			if (code === 0)
 				resolve()
@@ -15,7 +17,7 @@ function runFile(name) {
 }
 
 function listTests() {
-	let files = fs.readdirSync('.')
+	let files = fs.readdirSync(__dirname)
 	let tests = []
 	for (let name of files) {
 		if (!name.startsWith('test-'))

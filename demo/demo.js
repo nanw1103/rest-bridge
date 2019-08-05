@@ -1,6 +1,6 @@
-
+const path = require('path')
 const demoDelay = millis => new Promise(resolve => setTimeout(resolve, millis))
-const fork = moduleName => require('child_process').fork(__dirname + '/' + moduleName);
+const fork = moduleName => require('child_process').fork(path.join(__dirname, moduleName));
 
 //This demo shows how hub, connector, target and http client works.
 (async function() {

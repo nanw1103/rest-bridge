@@ -1,3 +1,4 @@
+const path = require('path')
 const clusterCall = require('cluster-call')
 const { log } = require('../shared/log.js')()
 const thisNode = require('../shared/node.js')
@@ -6,7 +7,7 @@ const defaults = require('./defaults.js')
 
 require('cluster-collector')
 
-let globalOptions = Object.assign({}, defaults)
+let globalOptions = { ...defaults}
 
 clusterCall.getOptions = () => globalOptions
 
@@ -62,7 +63,7 @@ function createCluster(options) {
 
 	const cluster = require('cluster')
 	cluster.setupMaster({
-		exec: __dirname + '/child.js'
+		exec: path.join(__dirname, 'child.js')
 	})
 
 	cluster

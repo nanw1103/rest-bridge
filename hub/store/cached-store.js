@@ -7,10 +7,9 @@ const defaultOptions = {
 }
 
 class CachedStore {
-
 	constructor(store, options) {
 		this.impl = store
-		this.options = Object.assign({}, defaultOptions, options)
+		this.options = { ...defaultOptions, ...options}
 		this.cache = lru(options.size, false, options.ttl, options.expire)
 	}
 

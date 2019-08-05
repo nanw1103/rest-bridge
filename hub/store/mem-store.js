@@ -1,7 +1,6 @@
 const lru = require('tiny-lru')
 
 class MemStore {
-
 	constructor(size) {
 		size = size || 10000
 		this._map = lru(size, false, 0, 0)
