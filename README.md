@@ -209,6 +209,7 @@ If there are more than one machine/container, an external shared storage is a mu
 
 
 # Test
+Built-in test cases covers basic scenarios as well as stress testing on local computer.
 ```javascript
 npm i
 npm test
