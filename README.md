@@ -1,7 +1,7 @@
 # rest-bridge
 Expose REST service in private network to public network, via connector (in private network) and hub (public service).
 
-[![DeepScan grade](https://deepscan.io/api/teams/4922/projects/6710/branches/57236/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=4922&pid=6710&bid=57236)
+[![DeepScan grade](https://deepscan.io/api/teams/4922/projects/6710/branches/57236/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=4922&pid=6710&bid=57236) [![npm version](http://img.shields.io/npm/v/rest-bridge.svg?style=flat)](https://npmjs.org/package/rest-bridge "View this project on npm")
 
 ![rest-bridge architecture](https://github.com/nanw1103/rest-bridge/blob/master/docs/rest-bridge-overview.png?raw=true)
 
