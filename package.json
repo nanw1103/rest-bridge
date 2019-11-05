@@ -1,6 +1,6 @@
 {
   "name": "rest-bridge",
-  "version": "1.0.40",
+  "version": "1.0.41",
   "description": "Expose REST service in private network to public network, via connector (in private network) and hub (public service).",
   "main": "index.js",
   "directories": {
@@ -29,9 +29,9 @@
     "api bridge"
   ],
   "dependencies": {
-    "newheelog": "^0.0.3",
+    "newheelog": "^1.0.8",
     "body-parser": "^1.18.3",
-    "cluster-collector": "^1.0.7",
+    "cluster-collector": "^1.0.8",
     "connect": "^3.2.0",
     "tiny-lru": "^1.6.1",
     "ws": "^5.2.2"
